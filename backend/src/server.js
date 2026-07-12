@@ -5,6 +5,7 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import allocationRoutes from "./modules/allocations/allocations.routes.js";
 import transferRoutes from "./modules/transfers/transfers.routes.js";
 import assetRoutes from "./modules/assets/assets.routes.js";
+import { resourcesRouter, bookingsRouter, myBookingsRouter } from "./modules/bookings/bookings.routes.js";
 
 const app = express();
 app.use(cors());
@@ -16,6 +17,9 @@ app.use("/auth", authRoutes);
 app.use("/assets", assetRoutes);
 app.use("/allocations", allocationRoutes);
 app.use("/transfers", transferRoutes);
+app.use("/resources", resourcesRouter);
+app.use("/bookings", bookingsRouter);
+app.use("/my-bookings", myBookingsRouter);
 // Phase 1 (Harshit): app.use("/departments", ...), app.use("/categories", ...), app.use("/employees", ...)
 // Phase 2+: assets, bookings, maintenance, audits, dashboard, reports
 
