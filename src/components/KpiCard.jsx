@@ -1,4 +1,5 @@
 import * as Icons from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const stripeColor = {
   available: 'border-status-available',
@@ -18,7 +19,7 @@ const iconColor = {
   retired: 'text-status-retired',
 }
 
-export default function KpiCard({ label, value, stripe = 'available', icon }) {
+export default function KpiCard({ label, value, stripe = 'available', icon, link }) {
   const Icon = Icons[icon] || Icons.Package
 
   return (
@@ -30,7 +31,11 @@ export default function KpiCard({ label, value, stripe = 'available', icon }) {
         <Icon size={16} className={iconColor[stripe]} />
       </div>
       <p className="font-mono-tag text-2xl font-semibold text-ink mb-1">{value}</p>
-      <button className="text-xs text-accent hover:underline">View all</button>
+      {link ? (
+        <Link to={link} className="text-xs text-accent hover:underline">View all</Link>
+      ) : (
+        <button className="text-xs text-accent hover:underline">View all</button>
+      )}
     </div>
   )
 }

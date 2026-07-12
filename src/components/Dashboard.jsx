@@ -1,4 +1,5 @@
 import * as Icons from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import KpiCard from './KpiCard.jsx'
 import PageHeader from './PageHeader.jsx'
@@ -34,17 +35,17 @@ function buildKpis(role, data) {
   if (!data) return []
   
   const allKpis = [
-    { key: 'available', label: 'Assets available', value: data.available || 0, stripe: 'available', icon: 'Package' },
-    { key: 'allocated', label: 'Assets allocated', value: data.allocated || 0, stripe: 'allocated', icon: 'ArrowLeftRight' },
-    { key: 'maintenanceToday', label: 'Maintenance today', value: data.maintenanceToday || 0, stripe: 'maintenance', icon: 'Wrench' },
-    { key: 'activeBookings', label: 'Active bookings', value: data.activeBookings || 0, stripe: 'allocated', icon: 'Calendar' },
-    { key: 'pendingTransfers', label: 'Pending transfers', value: data.pendingTransfers || 0, stripe: 'reserved', icon: 'RefreshCw' },
-    { key: 'upcomingReturns', label: 'Upcoming returns', value: data.upcomingReturns || 0, stripe: 'available', icon: 'Clock' },
-    { key: 'overdueReturns', label: 'Overdue returns', value: data.overdueReturns || 0, stripe: 'lost', icon: 'AlertTriangle' },
+    { key: 'available', label: 'Assets available', value: data.available || 0, stripe: 'available', icon: 'Package', link: '/assets' },
+    { key: 'allocated', label: 'Assets allocated', value: data.allocated || 0, stripe: 'allocated', icon: 'ArrowLeftRight', link: '/allocations' },
+    { key: 'maintenanceToday', label: 'Maintenance today', value: data.maintenanceToday || 0, stripe: 'maintenance', icon: 'Wrench', link: '/maintenance' },
+    { key: 'activeBookings', label: 'Active bookings', value: data.activeBookings || 0, stripe: 'allocated', icon: 'Calendar', link: '/bookings' },
+    { key: 'pendingTransfers', label: 'Pending transfers', value: data.pendingTransfers || 0, stripe: 'reserved', icon: 'RefreshCw', link: '/allocations' },
+    { key: 'upcomingReturns', label: 'Upcoming returns', value: data.upcomingReturns || 0, stripe: 'available', icon: 'Clock', link: '/bookings' },
+    { key: 'overdueReturns', label: 'Overdue returns', value: data.overdueReturns || 0, stripe: 'lost', icon: 'AlertTriangle', link: '/bookings' },
   ]
 
   if (role === 'employee') {
-    return [{ label: 'My allocated assets', value: data.allocated || 0, stripe: 'allocated', icon: 'Package' }]
+    return [{ label: 'My allocated assets', value: data.allocated || 0, stripe: 'allocated', icon: 'Package', link: '/allocations' }]
   }
 
   if (role === 'dept_head') {
@@ -95,7 +96,7 @@ export default function Dashboard() {
                 </span>
               )}
             </h2>
-            <button className="text-xs text-accent hover:underline">View all</button>
+            <Link to="/notifications" className="text-xs text-accent hover:underline">View all</Link>
           </div>
           <div className="space-y-2 mb-4">
             {/* TODO: Replace with live overdue activity/notifications API */}
