@@ -63,6 +63,18 @@ async function main() {
     ["Conference Room B2", "Meeting Rooms", null, "Mumbai HQ", true],
     ["Meeting Room A1", "Meeting Rooms", null, "Mumbai HQ", true],
     ["Canon Printer G3010", "Electronics", "SN-PRN-001", "Pune Office", false],
+    ["Lenovo ThinkPad X1", "Electronics", "SN-LAP-003", "Bangalore Office", false],
+    ["HP EliteBook 840", "Electronics", "SN-LAP-004", "Mumbai HQ", false],
+    ['Dell UltraSharp 32"', "Electronics", "SN-MON-002", "Mumbai HQ", false],
+    ["Logitech MX Master 3S", "Electronics", "SN-MOU-001", "Pune Office", false],
+    ["Ergonomic Keyboard", "Electronics", "SN-KBD-001", "Pune Office", false],
+    ["Conference Table 10-seater", "Furniture", null, "Mumbai HQ", false],
+    ["Whiteboard Mobile", "Furniture", null, "Mumbai HQ", false],
+    ["Mahindra Bolero Pickup", "Vehicles", "MH-14-XY-9876", "Pune Office", true],
+    ["Executive Cabin 1", "Meeting Rooms", null, "Bangalore Office", true],
+    ["Sony A7IV Camera", "Electronics", "SN-CAM-001", "Mumbai HQ", true],
+    ["iPad Pro 12.9", "Electronics", "SN-TAB-001", "Mumbai HQ", false],
+    ["Samsung Galaxy Tab S9", "Electronics", "SN-TAB-002", "Bangalore Office", false],
   ];
   let i = 1;
   for (const [name, cat, serialNumber, location, isBookable] of assets) {
@@ -87,7 +99,22 @@ async function main() {
   // app-generated tags continue from AF-0101
   await prisma.$executeRawUnsafe(`SELECT setval('asset_tag_seq', 100)`);
 
-  console.log("Seed complete: 4 users (pass123), 3 departments, 4 categories, 10 assets");
+  // --- Sample Allocations & History ---
+  const priya = await prisma.user.findUnique({ where: { email: "priya@assetflow.test" } });
+  const macbook = await prisma.asset.findUnique({ where: { tag: "AF-0002" } });
+  
+  if (priya && macbook) {
+    await prisma.allocation.create({
+      data: {
+        assetId: macbook.id,
+        holderUserId: priya.id,
+        expectedReturnDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      }
+    });
+    await prisma.asset.update({ where: { id: macbook.id }, data: { status: "allocated" } });
+  }
+
+  console.log("Seed complete: 4 users (pass123), 3 departments, 4 categories, 22 assets, 1 allocation");
 }
 
 main()

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { prisma } from "../../db.js";
 import { notify } from "../../services/notify.js";
+import { changeAssetStatus } from "../../services/assetStatus.js";
 
 // ── Validation ──────────────────────────────────────────────────────────
 const createSchema = z.object({
@@ -75,10 +76,7 @@ export async function createAllocation(req, res, next) {
         },
       });
 
-      await tx.asset.update({
-        where: { id: assetId },
-        data: { status: "allocated" },
-      });
+      await changeAssetStatus(assetId, "allocated", { userId: req.user?.id, tx });
 
       return alloc;
     });
@@ -130,10 +128,7 @@ export async function returnAllocation(req, res, next) {
         },
       });
 
-      await tx.asset.update({
-        where: { id: allocation.assetId },
-        data: { status: "available" },
-      });
+      await changeAssetStatus(allocation.assetId, "available", { userId: req.user?.id, tx });
 
       return alloc;
     });

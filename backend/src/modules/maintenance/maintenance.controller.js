@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { prisma } from "../../db.js";
 import { notify } from "../../services/notify.js";
+import { changeAssetStatus } from "../../services/assetStatus.js";
 
 // ── Validation ──────────────────────────────────────────────────────────────
 
@@ -114,10 +115,7 @@ export async function updateMaintenance(req, res, next) {
           where: { id },
           data: { status: "approved", decidedById: req.user.id }
         });
-        await tx.asset.update({
-          where: { id: request.assetId },
-          data: { status: "under_maintenance" }
-        });
+        await changeAssetStatus(request.assetId, "under_maintenance", { userId: req.user?.id, tx });
         return m;
       });
       notify(request.raisedById, "maintenance_approved", `Maintenance for ${request.asset.name} was approved.`).catch(()=>{});
@@ -152,10 +150,7 @@ export async function updateMaintenance(req, res, next) {
           where: { assetId: request.assetId, returnedAt: null }
         });
         
-        await tx.asset.update({
-          where: { id: request.assetId },
-          data: { status: alloc ? "allocated" : "available" }
-        });
+        await changeAssetStatus(request.assetId, alloc ? "allocated" : "available", { userId: req.user?.id, tx });
         return m;
       });
       notify(request.raisedById, "maintenance_resolved", `Maintenance for ${request.asset.name} was completed.`).catch(()=>{});

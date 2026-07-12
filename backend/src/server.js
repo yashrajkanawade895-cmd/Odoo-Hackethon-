@@ -8,11 +8,17 @@ import assetRoutes from "./modules/assets/assets.routes.js";
 import { resourcesRouter, bookingsRouter, myBookingsRouter } from "./modules/bookings/bookings.routes.js";
 import maintenanceRoutes from "./modules/maintenance/maintenance.routes.js";
 import { dashboardRouter, notificationsRouter, activityLogsRouter, reportsRouter } from "./modules/dashboard/dashboard.routes.js";
-import { auditCyclesRouter, auditItemsRouter } from "./modules/audits/audits.routes.js";
+import departmentRoutes from "./modules/departments/departments.routes.js";
+import categoryRoutes from "./modules/categories/categories.routes.js";
+import employeeRoutes from "./modules/employees/employees.routes.js";
+import { activityLogger } from "./middleware/activityLog.js";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Global activity logger middleware
+app.use(activityLogger);
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
@@ -30,7 +36,9 @@ app.use("/activity-logs", activityLogsRouter);
 app.use("/reports", reportsRouter);
 app.use("/audit-cycles", auditCyclesRouter);
 app.use("/audit-items", auditItemsRouter);
-// Phase 1 (Harshit): app.use("/departments", ...), app.use("/categories", ...), app.use("/employees", ...)
+app.use("/departments", departmentRoutes);
+app.use("/categories", categoryRoutes);
+app.use("/employees", employeeRoutes);
 // Phase 2+: assets, bookings, maintenance, audits, dashboard, reports
 
 app.use((_req, res) => res.status(404).json({ error: "not found" }));

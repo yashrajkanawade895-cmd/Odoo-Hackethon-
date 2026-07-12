@@ -162,6 +162,72 @@ export async function getUtilizationReport(req, res, next) {
   } catch(err) { next(err); }
 }
 
+// ── GET /reports/maintenance-frequency ─────────────────────────────────────
+export async function getMaintenanceFrequencyReport(req, res, next) {
+  try {
+    const assets = await prisma.asset.findMany({
+      include: {
+        category: { select: { name: true } },
+        _count: { select: { maintenance: true } },
+      },
+      orderBy: { maintenance: { _count: "desc" } },
+      take: 20
+    });
+
+    const report = assets.map(a => ({
+      assetTag: a.tag,
+      assetName: a.name,
+      category: a.category.name,
+      maintenanceCount: a._count.maintenance
+    }));
+    res.json(report);
+  } catch(err) { next(err); }
+}
+
+// ── GET /reports/department-allocation ──────────────────────────────────────
+export async function getDepartmentAllocationReport(req, res, next) {
+  try {
+    const departments = await prisma.department.findMany({
+      include: {
+        _count: {
+          select: { allocations: { where: { returnedAt: null } } }
+        }
+      }
+    });
+
+    const report = departments.map(d => ({
+      department: d.name,
+      activeAllocations: d._count.allocations
+    }));
+    res.json(report);
+  } catch(err) { next(err); }
+}
+
+// ── GET /reports/booking-heatmap ────────────────────────────────────────────
+export async function getBookingHeatmapReport(req, res, next) {
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: { status: { not: "cancelled" } },
+      select: { startTs: true }
+    });
+
+    // Simple heatmap: day of week (0-6) -> hour (0-23) -> count
+    const heatmap = {};
+    for (let d = 0; d < 7; d++) {
+      heatmap[d] = {};
+      for (let h = 0; h < 24; h++) heatmap[d][h] = 0;
+    }
+
+    bookings.forEach(b => {
+      const day = b.startTs.getDay();
+      const hour = b.startTs.getHours();
+      heatmap[day][hour]++;
+    });
+
+    res.json(heatmap);
+  } catch(err) { next(err); }
+}
+
 // ── GET /reports/export ─────────────────────────────────────────────────────
 export async function exportReport(req, res, next) {
   try {

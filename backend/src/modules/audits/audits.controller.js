@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { prisma } from "../../db.js";
+import { changeAssetStatus } from "../../services/assetStatus.js";
 
 const createCycleSchema = z.object({
   name: z.string().min(1),
@@ -195,10 +196,9 @@ export async function closeAuditCycle(req, res, next) {
       // Mark missing items as "lost"
       const missingItems = cycle.items.filter(i => i.result === "missing");
       if (missingItems.length > 0) {
-        await tx.asset.updateMany({
-          where: { id: { in: missingItems.map(i => i.assetId) } },
-          data: { status: "lost" }
-        });
+        for (const i of missingItems) {
+          await changeAssetStatus(i.assetId, "lost", { userId: req.user?.id, tx });
+        }
       }
 
       // Lock the cycle
