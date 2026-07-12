@@ -11,6 +11,7 @@ import { dashboardRouter, notificationsRouter, activityLogsRouter, reportsRouter
 import departmentRoutes from "./modules/departments/departments.routes.js";
 import categoryRoutes from "./modules/categories/categories.routes.js";
 import employeeRoutes from "./modules/employees/employees.routes.js";
+import { auditCyclesRouter, auditItemsRouter } from "./modules/audits/audits.routes.js";
 import { activityLogger } from "./middleware/activityLog.js";
 
 const app = express();

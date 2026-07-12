@@ -12,7 +12,8 @@ export function activityLogger(req, res, next) {
     // Only log if the request was successful (2xx)
     if (res.statusCode >= 200 && res.statusCode < 300 && req.user) {
       try {
-        const pathParts = req.baseUrl.split("/").filter(Boolean);
+        // req.originalUrl includes the full path (e.g., /assets or /assets/1). We split by '?' to ignore query strings.
+        const pathParts = req.originalUrl.split("?")[0].split("/").filter(Boolean);
         const entityName = pathParts[0] || "unknown"; // e.g. "assets", "departments"
         
         // simple mapping, e.g. POST /assets -> asset.create
