@@ -2,26 +2,40 @@
 
 export const kpisByRole = {
   admin: [
-    { label: 'Assets available', value: 248, stripe: 'available' },
-    { label: 'Assets allocated', value: 512, stripe: 'allocated' },
-    { label: 'Maintenance today', value: 6, stripe: 'maintenance' },
-    { label: 'Active bookings', value: 34, stripe: 'allocated' },
-    { label: 'Pending transfers', value: 9, stripe: 'reserved' },
-    { label: 'Upcoming returns', value: 21, stripe: 'available' },
+    { label: 'Assets available', value: 324, stripe: 'available', icon: 'Package' },
+    { label: 'Assets allocated', value: 842, stripe: 'allocated', icon: 'ArrowLeftRight' },
+    { label: 'Maintenance today', value: 18, stripe: 'maintenance', icon: 'Wrench' },
+    { label: 'Active bookings', value: 27, stripe: 'allocated', icon: 'Calendar' },
+    { label: 'Pending transfers', value: 12, stripe: 'reserved', icon: 'RefreshCw' },
+    { label: 'Upcoming returns', value: 45, stripe: 'available', icon: 'Clock' },
+    { label: 'Overdue returns', value: 7, stripe: 'lost', icon: 'AlertTriangle' },
   ],
-  departmentHead: [
-    { label: 'Assets available', value: 42, stripe: 'available' },
-    { label: 'Assets allocated', value: 88, stripe: 'allocated' },
-    { label: 'Maintenance today', value: 2, stripe: 'maintenance' },
-    { label: 'Active bookings', value: 7, stripe: 'allocated' },
-    { label: 'Pending transfers', value: 3, stripe: 'reserved' },
-    { label: 'Upcoming returns', value: 5, stripe: 'available' },
+  dept_head: [
+    { label: 'Assets available', value: 42, stripe: 'available', icon: 'Package' },
+    { label: 'Assets allocated', value: 128, stripe: 'allocated', icon: 'ArrowLeftRight' },
+    { label: 'Maintenance today', value: 6, stripe: 'maintenance', icon: 'Wrench' },
+    { label: 'Active bookings', value: 5, stripe: 'allocated', icon: 'Calendar' },
+    { label: 'Overdue returns', value: 2, stripe: 'lost', icon: 'AlertTriangle' },
+  ],
+  asset_manager: [
+    { label: 'Assets available', value: 324, stripe: 'available', icon: 'Package' },
+    { label: 'Assets allocated', value: 842, stripe: 'allocated', icon: 'ArrowLeftRight' },
+    { label: 'Maintenance today', value: 18, stripe: 'maintenance', icon: 'Wrench' },
+    { label: 'Pending transfers', value: 12, stripe: 'reserved', icon: 'RefreshCw' },
+    { label: 'Overdue returns', value: 7, stripe: 'lost', icon: 'AlertTriangle' },
   ],
   employee: [
-    { label: 'My allocated assets', value: 3, stripe: 'allocated' },
-    { label: 'My active bookings', value: 1, stripe: 'available' },
+    { label: 'My allocated assets', value: 2, stripe: 'allocated', icon: 'Package' },
   ],
 }
+
+export const shortcuts = [
+  { key: 'assets', label: 'Assets', icon: 'Package' },
+  { key: 'allocations', label: 'Allocations', icon: 'ArrowLeftRight' },
+  { key: 'bookings', label: 'Bookings', icon: 'Calendar' },
+  { key: 'maintenance', label: 'Maintenance', icon: 'Wrench' },
+  { key: 'audit', label: 'Audit', icon: 'ClipboardCheck' },
+]
 
 export const overdueItems = [
   { id: 'AF-0114', type: 'Return', detail: 'Laptop — held by Priya Sharma', dueDate: '2026-07-08' },
