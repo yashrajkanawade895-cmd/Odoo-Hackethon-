@@ -7,7 +7,7 @@ import transferRoutes from "./modules/transfers/transfers.routes.js";
 import assetRoutes from "./modules/assets/assets.routes.js";
 import { resourcesRouter, bookingsRouter, myBookingsRouter } from "./modules/bookings/bookings.routes.js";
 import maintenanceRoutes from "./modules/maintenance/maintenance.routes.js";
-import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
+import { dashboardRouter, notificationsRouter, activityLogsRouter, reportsRouter } from "./modules/dashboard/dashboard.routes.js";
 
 const app = express();
 app.use(cors());
@@ -23,7 +23,10 @@ app.use("/resources", resourcesRouter);
 app.use("/bookings", bookingsRouter);
 app.use("/my-bookings", myBookingsRouter);
 app.use("/maintenance", maintenanceRoutes);
-app.use("/dashboard", dashboardRoutes);
+app.use("/dashboard", dashboardRouter);
+app.use("/notifications", notificationsRouter);
+app.use("/activity-logs", activityLogsRouter);
+app.use("/reports", reportsRouter);
 // Phase 1 (Harshit): app.use("/departments", ...), app.use("/categories", ...), app.use("/employees", ...)
 // Phase 2+: assets, bookings, maintenance, audits, dashboard, reports
 

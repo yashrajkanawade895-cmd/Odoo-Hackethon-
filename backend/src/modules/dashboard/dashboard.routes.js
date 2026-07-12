@@ -1,10 +1,20 @@
 import { Router } from "express";
-import { requireAuth } from "../../middleware/auth.js";
+import { requireAuth, requireRole } from "../../middleware/auth.js";
 import * as ctrl from "./dashboard.controller.js";
 
 const router = Router();
 
-// Anyone can view the KPIs, but the frontend may display different cards depending on role.
-router.get("/kpis", requireAuth, ctrl.getDashboardKpis);
+export const dashboardRouter = Router();
+dashboardRouter.get("/kpis", requireAuth, ctrl.getDashboardKpis);
 
-export default router;
+export const notificationsRouter = Router();
+notificationsRouter.get("/", requireAuth, ctrl.getNotifications);
+notificationsRouter.patch("/:id/read", requireAuth, ctrl.markNotificationRead);
+
+export const activityLogsRouter = Router();
+activityLogsRouter.get("/", requireAuth, requireRole("admin"), ctrl.getActivityLogs);
+
+export const reportsRouter = Router();
+reportsRouter.get("/utilization", requireAuth, ctrl.getUtilizationReport);
+reportsRouter.get("/export", requireAuth, ctrl.exportReport);
+
