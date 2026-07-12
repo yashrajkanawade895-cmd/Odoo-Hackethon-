@@ -9,9 +9,12 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "setup": "node scripts/setup.mjs",
     "migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "db:constraints": "prisma db execute --file prisma/sql/constraints.sql --schema prisma/schema.prisma",
     "seed": "node prisma/seed.js",
+    "db:setup": "prisma migrate deploy && npm run db:constraints && npm run seed",
     "studio": "prisma studio"
   },
   "dependencies": {

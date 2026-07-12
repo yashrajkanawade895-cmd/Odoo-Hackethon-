@@ -14,16 +14,40 @@ The system includes asset allocation, resource booking, maintenance workflows, a
 | [docs/api-contract.md](docs/api-contract.md) | **The law** — every endpoint's shape; frontend codes against this |
 | [frontend/README.md](frontend/README.md) | Ashmit's scaffold + mock-first strategy |
 
-## Backend quick start (Yashraj / Harshit)
+## Backend setup — teammates start here
+
+Prerequisite: **PostgreSQL 16** installed and running (local), OR a shared cloud Postgres URL from the team.
+
 ```bash
 cd backend
 npm install
-copy .env.example .env        # then put your real Postgres password in .env
-# create the database once (VS Code PostgreSQL extension): CREATE DATABASE assetflow;
-npm run migrate               # prisma migrate dev
-npm run db:constraints        # partial unique index + booking overlap constraint + tag sequence
-npm run seed                  # 4 users (pass123), departments, categories, 10 assets
-npm run dev                   # http://localhost:5000/health
+npm run setup     # first run creates backend/.env — open it, set your Postgres password, run setup again
+npm run setup     # creates the DB, migrates, applies constraints, and seeds demo data
+npm run dev       # http://localhost:5000/health
 ```
 
-Seeded logins (password `pass123`): `admin@assetflow.test`, `manager@assetflow.test`, `head@assetflow.test`, `priya@assetflow.test`
+That's it — `npm run setup` builds the whole database from zero (it creates the `assetflow`
+database automatically, applies the schema + the DB-level rules, and seeds the demo data).
+Safe to re-run any time.
+
+**Seeded logins (password `pass123`):** `admin@assetflow.test` · `manager@assetflow.test` · `head@assetflow.test` · `priya@assetflow.test`
+
+> The logins live in **your** database, not in git — everyone must run `npm run setup` on their
+> own machine (or all point `DATABASE_URL` at one shared cloud Postgres and seed once).
+
+<details><summary>Manual steps (if you prefer to run them individually)</summary>
+
+```bash
+copy .env.example .env        # set your Postgres password in DATABASE_URL
+npm run db:deploy             # apply migrations (creates the DB if missing)
+npm run db:constraints        # partial unique index + booking-overlap constraint + tag sequence
+npm run seed                  # 4 users, 3 departments, 4 categories, 10 assets
+```
+</details>
+
+## Frontend
+```bash
+cd frontend
+npm install
+npm run dev       # http://localhost:5173  (expects the backend running on :5000)
+```
