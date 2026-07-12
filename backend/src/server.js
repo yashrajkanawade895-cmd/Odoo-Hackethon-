@@ -9,10 +9,15 @@ import { resourcesRouter, bookingsRouter, myBookingsRouter } from "./modules/boo
 import maintenanceRoutes from "./modules/maintenance/maintenance.routes.js";
 import { dashboardRouter, notificationsRouter, activityLogsRouter, reportsRouter } from "./modules/dashboard/dashboard.routes.js";
 import { auditCyclesRouter, auditItemsRouter } from "./modules/audits/audits.routes.js";
+import departmentsRoutes from "./modules/departments/departments.routes.js";
+import categoriesRoutes from "./modules/categories/categories.routes.js";
+import employeesRoutes from "./modules/employees/employees.routes.js";
+import { activityLogger } from "./middleware/activityLog.js";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(activityLogger);
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
@@ -30,8 +35,9 @@ app.use("/activity-logs", activityLogsRouter);
 app.use("/reports", reportsRouter);
 app.use("/audit-cycles", auditCyclesRouter);
 app.use("/audit-items", auditItemsRouter);
-// Phase 1 (Harshit): app.use("/departments", ...), app.use("/categories", ...), app.use("/employees", ...)
-// Phase 2+: assets, bookings, maintenance, audits, dashboard, reports
+app.use("/departments", departmentsRoutes);
+app.use("/categories", categoriesRoutes);
+app.use("/employees", employeesRoutes);
 
 app.use((_req, res) => res.status(404).json({ error: "not found" }));
 
