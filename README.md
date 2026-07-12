@@ -6,13 +6,28 @@ The system includes asset allocation, resource booking, maintenance workflows, a
 
 **Team:** Yashraj (backend) · Harshit (backend) · Ashmit (frontend)
 
-**Stack:** React + Vite + Tailwind/shadcn · Node.js + Express + Prisma + **PostgreSQL 16** · JWT RBAC — everything served live from the database, no static data.
+**Stack:** React 18 + Vite + Tailwind · Node.js + Express + Prisma + **PostgreSQL 16** · JWT role-based auth — everything served live from the database, no static data.
 
 | Read this | What it is |
 |---|---|
 | [docs/PIPELINE.md](docs/PIPELINE.md) | Full plan: phases, per-person tasks, schema, setup, demo script |
 | [docs/api-contract.md](docs/api-contract.md) | **The law** — every endpoint's shape; frontend codes against this |
-| [frontend/README.md](frontend/README.md) | Ashmit's scaffold + mock-first strategy |
+| [frontend/README.md](frontend/README.md) | Frontend scaffold + API-layer notes |
+
+## Features (10 screens)
+
+1. **Auth** — email/password login + signup that only ever creates an Employee (no self-elevation); password reset. Roles are assigned only by an Admin.
+2. **Dashboard** — live KPI cards (available, allocated, maintenance, bookings, pending transfers, upcoming/overdue returns), activity feed, and working quick-action + shortcut buttons.
+3. **Organization Setup** (Admin) — 3 tabs: Departments (with head + parent hierarchy), Asset Categories (with custom fields), and the Employee Directory (the only place roles are promoted).
+4. **Assets** — register with auto tag `AF-0001`, search/filter, per-asset detail drawer with allocation + maintenance history and a **QR code** of the tag.
+5. **Allocation & Transfer** — allocate to a person/department; **double-allocation is blocked** ("held by X" → Request Transfer); transfer approval and return flow.
+6. **Resource Booking** — time-slot booking of shared resources with **overlap rejection** (back-to-back allowed); cancel/reschedule.
+7. **Maintenance** — raise → approve/reject → assign technician → in progress → resolve, with the asset status auto-flipping to *Under Maintenance* and back.
+8. **Audit** — create scoped audit cycles, auto-populated items, mark Verified/Missing/Damaged, discrepancy report, close cycle (confirmed-missing → *Lost*).
+9. **Reports & Analytics** — asset utilization, maintenance frequency by category, department-wise allocation, a booking heatmap, and assets due for maintenance / nearing retirement. CSV export.
+10. **Notifications & Activity Log** — in-app notification bell with unread badge + a full audit log of who did what.
+
+**Enforced at the database level (not just the UI):** one active allocation per asset (partial unique index), no overlapping bookings (exclusion constraint), asset-tag sequence. A background scheduler auto-flags overdue returns and sends booking reminders.
 
 ## Backend setup — teammates start here
 
@@ -50,4 +65,22 @@ npm run seed                  # 4 users, 3 departments, 4 categories, 10 assets
 cd frontend
 npm install
 npm run dev       # http://localhost:5173  (expects the backend running on :5000)
+```
+
+## Roles
+
+| Role | Can do |
+|---|---|
+| **Admin** | Organization Setup (departments, categories, audit cycles), promote employees, view org-wide analytics |
+| **Asset Manager** | Register/allocate assets, approve transfers & maintenance, approve returns |
+| **Department Head** | View their department's assets, approve dept transfers, book resources |
+| **Employee** | View own assets, book resources, raise maintenance, initiate return/transfer |
+
+## Project layout
+```
+backend/    Express + Prisma API (folder-per-module: auth, assets, allocations,
+            transfers, bookings, maintenance, audits, dashboard, departments,
+            categories, employees) + services/scheduler.js
+frontend/   React + Vite app (pages/, components/, api/ layer, context/)
+docs/       PIPELINE.md (plan) + api-contract.md (endpoint shapes)
 ```
