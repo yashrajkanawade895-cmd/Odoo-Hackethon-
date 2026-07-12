@@ -4,6 +4,7 @@ import cors from "cors";
 import authRoutes from "./modules/auth/auth.routes.js";
 import allocationRoutes from "./modules/allocations/allocations.routes.js";
 import transferRoutes from "./modules/transfers/transfers.routes.js";
+import assetRoutes from "./modules/assets/assets.routes.js";
 
 const app = express();
 app.use(cors());
@@ -12,6 +13,7 @@ app.use(express.json());
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
 app.use("/auth", authRoutes);
+app.use("/assets", assetRoutes);
 app.use("/allocations", allocationRoutes);
 app.use("/transfers", transferRoutes);
 // Phase 1 (Harshit): app.use("/departments", ...), app.use("/categories", ...), app.use("/employees", ...)
