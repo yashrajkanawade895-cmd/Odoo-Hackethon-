@@ -1,38 +1,53 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
+import { api, tokenStorage } from '../api/client.js'
 
 const AuthContext = createContext(null)
 
-// TODO(sync with Yashraj): replace with real POST /auth/login + JWT storage
-// per docs/api-contract.md. Shape below matches the documented JWT claims
-// {id, role, department_id} so swapping the implementation doesn't touch consumers.
-const MOCK_USER = {
-  id: 'usr_1',
-  name: 'Admin User',
-  role: 'admin', // admin | asset_manager | dept_head | employee
-  department_id: null,
-}
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(MOCK_USER)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const token = tokenStorage.get()
+      if (token) {
+        try {
+          const profile = await api.auth.me()
+          setUser(profile)
+        } catch (err) {
+          console.error('Failed to restore session', err)
+          tokenStorage.clear()
+        }
+      }
+      setLoading(false)
+    }
+    initAuth()
+  }, [])
 
   const login = async (email, password) => {
-    // TODO: POST /auth/login -> { token, user }
-    setUser(MOCK_USER)
-    return MOCK_USER
+    const res = await api.auth.login(email, password)
+    tokenStorage.set(res.token)
+    setUser(res.user)
+    return res.user
   }
 
   const signup = async (name, email, password) => {
-    // TODO: POST /auth/signup -> always role "employee", no role field sent
-    setUser({ ...MOCK_USER, role: 'employee' })
+    await api.auth.signup(name, email, password)
+    // Auto login after signup
+    return login(email, password)
   }
 
-  const logout = () => setUser(null)
+  const logout = () => {
+    tokenStorage.clear()
+    setUser(null)
+  }
 
+  // Helper for demo UI when not fully logged in
   const setRoleForDemo = (role) => setUser((u) => ({ ...u, role }))
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, setRoleForDemo }}>
-      {children}
+    <AuthContext.Provider value={{ user, login, signup, logout, setRoleForDemo, loading }}>
+      {!loading && children}
     </AuthContext.Provider>
   )
 }

@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import PageHeader from '../components/PageHeader.jsx'
 import { Button } from '../components/ui/button.jsx'
 import { Input } from '../components/ui/input.jsx'
-import { seedDepartments, seedCategories, seedEmployees } from '../data/seedData.js'
+import { api } from '../api/client.js'
 
 const tabs = [
   { key: 'departments', label: 'Departments' },
@@ -24,19 +25,32 @@ function StatusBadge({ status }) {
 }
 
 function DepartmentsTab() {
-  const [departments, setDepartments] = useState(seedDepartments)
+  const queryClient = useQueryClient()
+  const { data: departments = [], isLoading } = useQuery({
+    queryKey: ['departments'],
+    queryFn: api.org.departments.list
+  })
+
+  const createMutation = useMutation({
+    mutationFn: api.org.departments.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['departments'] })
+      setForm({ name: '', headId: '', parentId: '' })
+      setShowForm(false)
+    }
+  })
+
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ name: '', head: '', parent: '' })
+  const [form, setForm] = useState({ name: '', headId: '', parentId: '' })
 
   const addDepartment = (e) => {
     e.preventDefault()
     if (!form.name) return
-    setDepartments((d) => [
-      ...d,
-      { id: `d${d.length + 1}`, name: form.name, head: form.head || '—', parent: form.parent || null, status: 'active' },
-    ])
-    setForm({ name: '', head: '', parent: '' })
-    setShowForm(false)
+    createMutation.mutate({
+      name: form.name,
+      headId: form.headId ? parseInt(form.headId) : undefined,
+      parentId: form.parentId ? parseInt(form.parentId) : undefined
+    })
   }
 
   return (
@@ -48,11 +62,13 @@ function DepartmentsTab() {
       </div>
       {showForm && (
         <form onSubmit={addDepartment} className="bg-panel border border-line rounded-lg p-4 mb-4 grid grid-cols-3 gap-3">
-          <Input placeholder="Department name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <Input placeholder="Department head" value={form.head} onChange={(e) => setForm({ ...form, head: e.target.value })} />
-          <Input placeholder="Parent department (optional)" value={form.parent} onChange={(e) => setForm({ ...form, parent: e.target.value })} />
+          <Input placeholder="Department name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} disabled={createMutation.isPending} />
+          <Input placeholder="Head ID (optional)" type="number" value={form.headId} onChange={(e) => setForm({ ...form, headId: e.target.value })} disabled={createMutation.isPending} />
+          <Input placeholder="Parent Dept ID (optional)" type="number" value={form.parentId} onChange={(e) => setForm({ ...form, parentId: e.target.value })} disabled={createMutation.isPending} />
           <div className="col-span-3">
-            <Button type="submit" size="sm">Save department</Button>
+            <Button type="submit" size="sm" disabled={createMutation.isPending}>
+              {createMutation.isPending ? 'Saving...' : 'Save department'}
+            </Button>
           </div>
         </form>
       )}
@@ -60,6 +76,7 @@ function DepartmentsTab() {
         <table className="w-full text-sm">
           <thead className="bg-surface text-ink/60 text-xs">
             <tr>
+              <th className="text-left px-4 py-2 font-medium">ID</th>
               <th className="text-left px-4 py-2 font-medium">Name</th>
               <th className="text-left px-4 py-2 font-medium">Head</th>
               <th className="text-left px-4 py-2 font-medium">Parent</th>
@@ -67,11 +84,13 @@ function DepartmentsTab() {
             </tr>
           </thead>
           <tbody>
+            {isLoading && <tr><td colSpan="5" className="p-4 text-center text-ink/60">Loading...</td></tr>}
             {departments.map((d) => (
               <tr key={d.id} className="border-t border-line">
+                <td className="px-4 py-2.5 text-ink/50">#{d.id}</td>
                 <td className="px-4 py-2.5 text-ink">{d.name}</td>
-                <td className="px-4 py-2.5 text-ink/70">{d.head}</td>
-                <td className="px-4 py-2.5 text-ink/70">{d.parent || '—'}</td>
+                <td className="px-4 py-2.5 text-ink/70">{d.head?.name || '—'}</td>
+                <td className="px-4 py-2.5 text-ink/70">{d.parent?.name || '—'}</td>
                 <td className="px-4 py-2.5"><StatusBadge status={d.status} /></td>
               </tr>
             ))}
@@ -83,16 +102,32 @@ function DepartmentsTab() {
 }
 
 function CategoriesTab() {
-  const [categories, setCategories] = useState(seedCategories)
+  const queryClient = useQueryClient()
+  const { data: categories = [], isLoading } = useQuery({
+    queryKey: ['categories'],
+    queryFn: api.org.categories.list
+  })
+
+  const createMutation = useMutation({
+    mutationFn: api.org.categories.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
+      setForm({ name: '', customFields: '' })
+      setShowForm(false)
+    }
+  })
+
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ name: '', customField: '' })
+  const [form, setForm] = useState({ name: '', customFields: '' })
 
   const addCategory = (e) => {
     e.preventDefault()
     if (!form.name) return
-    setCategories((c) => [...c, { id: `c${c.length + 1}`, name: form.name, customField: form.customField || '—' }])
-    setForm({ name: '', customField: '' })
-    setShowForm(false)
+    let parsedFields = {}
+    if (form.customFields) {
+      try { parsedFields = JSON.parse(form.customFields) } catch(err) { /* ignore or warn */ }
+    }
+    createMutation.mutate({ name: form.name, customFields: parsedFields })
   }
 
   return (
@@ -104,10 +139,12 @@ function CategoriesTab() {
       </div>
       {showForm && (
         <form onSubmit={addCategory} className="bg-panel border border-line rounded-lg p-4 mb-4 grid grid-cols-2 gap-3">
-          <Input placeholder="Category name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <Input placeholder="Custom field (optional, e.g. warranty period)" value={form.customField} onChange={(e) => setForm({ ...form, customField: e.target.value })} />
+          <Input placeholder="Category name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} disabled={createMutation.isPending} />
+          <Input placeholder='Custom fields (JSON)' value={form.customFields} onChange={(e) => setForm({ ...form, customFields: e.target.value })} disabled={createMutation.isPending} />
           <div className="col-span-2">
-            <Button type="submit" size="sm">Save category</Button>
+            <Button type="submit" size="sm" disabled={createMutation.isPending}>
+              {createMutation.isPending ? 'Saving...' : 'Save category'}
+            </Button>
           </div>
         </form>
       )}
@@ -115,15 +152,18 @@ function CategoriesTab() {
         <table className="w-full text-sm">
           <thead className="bg-surface text-ink/60 text-xs">
             <tr>
+              <th className="text-left px-4 py-2 font-medium">ID</th>
               <th className="text-left px-4 py-2 font-medium">Category</th>
-              <th className="text-left px-4 py-2 font-medium">Custom field</th>
+              <th className="text-left px-4 py-2 font-medium">Custom fields</th>
             </tr>
           </thead>
           <tbody>
+            {isLoading && <tr><td colSpan="3" className="p-4 text-center text-ink/60">Loading...</td></tr>}
             {categories.map((c) => (
               <tr key={c.id} className="border-t border-line">
+                <td className="px-4 py-2.5 text-ink/50">#{c.id}</td>
                 <td className="px-4 py-2.5 text-ink">{c.name}</td>
-                <td className="px-4 py-2.5 text-ink/70">{c.customField}</td>
+                <td className="px-4 py-2.5 text-ink/70">{JSON.stringify(c.customFields || {})}</td>
               </tr>
             ))}
           </tbody>
@@ -136,10 +176,23 @@ function CategoriesTab() {
 const roleLabel = { admin: 'Admin', asset_manager: 'Asset manager', dept_head: 'Department head', employee: 'Employee' }
 
 function EmployeesTab() {
-  const [employees, setEmployees] = useState(seedEmployees)
+  const queryClient = useQueryClient()
+  const { data: employees = [], isLoading } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => api.org.employees.list()
+  })
+
+  const promoteMutation = useMutation({
+    mutationFn: ({ id, role }) => api.org.employees.promote(id, role),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] })
+    }
+  })
 
   const promote = (id, role) => {
-    setEmployees((es) => es.map((e) => (e.id === id ? { ...e, role } : e)))
+    if (window.confirm(`Are you sure you want to promote this user to ${roleLabel[role]}?`)) {
+      promoteMutation.mutate({ id, role })
+    }
   }
 
   return (
@@ -156,20 +209,29 @@ function EmployeesTab() {
           </tr>
         </thead>
         <tbody>
+          {isLoading && <tr><td colSpan="6" className="p-4 text-center text-ink/60">Loading...</td></tr>}
           {employees.map((e) => (
             <tr key={e.id} className="border-t border-line">
               <td className="px-4 py-2.5 text-ink">{e.name}</td>
               <td className="px-4 py-2.5 text-ink/70">{e.email}</td>
-              <td className="px-4 py-2.5 text-ink/70">{e.department}</td>
+              <td className="px-4 py-2.5 text-ink/70">{e.department?.name || '—'}</td>
               <td className="px-4 py-2.5 text-ink/70">{roleLabel[e.role]}</td>
               <td className="px-4 py-2.5"><StatusBadge status={e.status} /></td>
               <td className="px-4 py-2.5">
                 {e.role === 'employee' ? (
                   <div className="flex gap-2">
-                    <button onClick={() => promote(e.id, 'dept_head')} className="text-xs text-accent hover:underline">
+                    <button 
+                      onClick={() => promote(e.id, 'dept_head')} 
+                      className="text-xs text-accent hover:underline disabled:opacity-50"
+                      disabled={promoteMutation.isPending}
+                    >
                       Make dept head
                     </button>
-                    <button onClick={() => promote(e.id, 'asset_manager')} className="text-xs text-accent hover:underline">
+                    <button 
+                      onClick={() => promote(e.id, 'asset_manager')} 
+                      className="text-xs text-accent hover:underline disabled:opacity-50"
+                      disabled={promoteMutation.isPending}
+                    >
                       Make asset manager
                     </button>
                   </div>
