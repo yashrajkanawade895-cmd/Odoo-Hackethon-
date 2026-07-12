@@ -87,7 +87,34 @@ async function main() {
   // app-generated tags continue from AF-0101
   await prisma.$executeRawUnsafe(`SELECT setval('asset_tag_seq', 100)`);
 
-  console.log("Seed complete: 4 users (pass123), 3 departments, 4 categories, 10 assets");
+  // --- Projects (Bento workspace) + focus statuses so the dashboard/directory demo well ---
+  const projectDefs = [
+    ["Website Revamp", "Redesign of the public site and dashboard", it.id, "Conference Room B2"],
+    ["Asset Migration Q3", "Physical asset re-tagging across offices", ops.id, "Meeting Room A1"],
+    ["Onboarding 2.0", "New-hire onboarding workflow", hr.id, null],
+  ];
+  const projects = {};
+  for (const [name, description, departmentId, meetingLocation] of projectDefs) {
+    const existing = await prisma.project.findFirst({ where: { name } });
+    projects[name] = existing ?? (await prisma.project.create({
+      data: { name, description, departmentId, meetingLocation },
+    }));
+  }
+
+  const focusByEmail = {
+    "admin@assetflow.test": ["available", "Website Revamp"],
+    "manager@assetflow.test": ["in_meeting", "Asset Migration Q3"],
+    "head@assetflow.test": ["focus_time", "Asset Migration Q3"],
+    "priya@assetflow.test": ["wfh", "Onboarding 2.0"],
+  };
+  for (const [email, [focusStatus, projectName]] of Object.entries(focusByEmail)) {
+    await prisma.user.updateMany({
+      where: { email },
+      data: { focusStatus, projectId: projects[projectName].id },
+    });
+  }
+
+  console.log("Seed complete: 4 users (pass123), 3 departments, 4 categories, 10 assets, 3 projects");
 }
 
 main()

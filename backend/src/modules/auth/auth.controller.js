@@ -16,7 +16,11 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
-const publicUser = { id: true, name: true, email: true, role: true, departmentId: true, status: true };
+const publicUser = {
+  id: true, name: true, email: true, role: true, departmentId: true, status: true,
+  focusStatus: true,
+  project: { select: { id: true, name: true, description: true, meetingLocation: true } },
+};
 
 function signToken(user) {
   return jwt.sign(
