@@ -65,7 +65,7 @@ export default function Dashboard() {
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="flex-1 min-w-[150px] h-[92px] bg-panel border border-line rounded-lg animate-pulse" />
           ))}
-        {!isLoading && kpis.map((kpi) => <KpiCard key={kpi.key} {...kpi} />)}
+        {!isLoading && kpis.map(({ key, ...card }) => <KpiCard key={key} {...card} />)}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
