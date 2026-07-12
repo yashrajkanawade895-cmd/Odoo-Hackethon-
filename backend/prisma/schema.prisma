@@ -1,0 +1,284 @@
+// AssetFlow database schema — 12 tables, see docs/PIPELINE.md section 4.
+// After `npm run migrate`, ALWAYS run `npm run db:constraints` to apply the
+// partial unique index (no double allocation), the booking overlap exclusion
+// constraint, and the asset tag sequence — Prisma cannot express those.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  admin
+  asset_manager
+  dept_head
+  employee
+}
+
+enum ActiveStatus {
+  active
+  inactive
+}
+
+enum AssetStatus {
+  available
+  allocated
+  reserved
+  under_maintenance
+  lost
+  retired
+  disposed
+}
+
+enum TransferStatus {
+  requested
+  approved
+  rejected
+}
+
+enum BookingStatus {
+  upcoming
+  ongoing
+  completed
+  cancelled
+}
+
+enum MaintenanceStatus {
+  pending
+  approved
+  rejected
+  technician_assigned
+  in_progress
+  resolved
+}
+
+enum MaintenancePriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum AuditCycleStatus {
+  open
+  closed
+}
+
+enum AuditResult {
+  pending
+  verified
+  missing
+  damaged
+}
+
+// ---------- Models ----------
+
+model User {
+  id           Int          @id @default(autoincrement())
+  name         String
+  email        String       @unique
+  passwordHash String       @map("password_hash")
+  role         Role         @default(employee)
+  status       ActiveStatus @default(active)
+  departmentId Int?         @map("department_id")
+  department   Department?  @relation("DeptMembers", fields: [departmentId], references: [id])
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  headOf             Department[]         @relation("DeptHead")
+  allocations        Allocation[]         @relation("Holder")
+  transfersFrom      TransferRequest[]    @relation("TransferFrom")
+  transfersTo        TransferRequest[]    @relation("TransferTo")
+  transfersDecided   TransferRequest[]    @relation("TransferDecidedBy")
+  bookings           Booking[]
+  maintenanceRaised  MaintenanceRequest[] @relation("RaisedBy")
+  maintenanceDecided MaintenanceRequest[] @relation("MaintDecidedBy")
+  auditCyclesCreated AuditCycle[]         @relation("AuditCreatedBy")
+  auditAssignments   AuditItem[]          @relation("Auditor")
+  notifications      Notification[]
+  activityLogs       ActivityLog[]
+
+  @@map("users")
+}
+
+model Department {
+  id       Int          @id @default(autoincrement())
+  name     String       @unique
+  status   ActiveStatus @default(active)
+  headId   Int?         @map("head_id")
+  head     User?        @relation("DeptHead", fields: [headId], references: [id])
+  parentId Int?         @map("parent_id")
+  parent   Department?  @relation("DeptHierarchy", fields: [parentId], references: [id])
+  children Department[] @relation("DeptHierarchy")
+
+  members     User[]       @relation("DeptMembers")
+  allocations Allocation[] @relation("DeptAllocations")
+  auditCycles AuditCycle[]
+
+  @@map("departments")
+}
+
+model AssetCategory {
+  id           Int     @id @default(autoincrement())
+  name         String  @unique
+  customFields Json?   @map("custom_fields") // e.g. {"warranty_months": 24} for Electronics
+  assets       Asset[]
+
+  @@map("asset_categories")
+}
+
+model Asset {
+  id              Int           @id @default(autoincrement())
+  tag             String        @unique // AF-0001, generated from asset_tag_seq
+  name            String
+  categoryId      Int           @map("category_id")
+  category        AssetCategory @relation(fields: [categoryId], references: [id])
+  serialNumber    String?       @map("serial_number")
+  acquisitionDate DateTime?     @map("acquisition_date")
+  acquisitionCost Decimal?      @map("acquisition_cost") // ranking/reports only, no accounting
+  condition       String?
+  location        String?
+  photoUrl        String?       @map("photo_url")
+  isBookable      Boolean       @default(false) @map("is_bookable")
+  status          AssetStatus   @default(available)
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  allocations Allocation[]
+  transfers   TransferRequest[]
+  bookings    Booking[]
+  maintenance MaintenanceRequest[]
+  auditItems  AuditItem[]
+
+  @@map("assets")
+}
+
+model Allocation {
+  id                 Int         @id @default(autoincrement())
+  assetId            Int         @map("asset_id")
+  asset              Asset       @relation(fields: [assetId], references: [id])
+  holderUserId       Int?        @map("holder_user_id")
+  holderUser         User?       @relation("Holder", fields: [holderUserId], references: [id])
+  holderDepartmentId Int?        @map("holder_department_id")
+  holderDepartment   Department? @relation("DeptAllocations", fields: [holderDepartmentId], references: [id])
+  allocatedAt        DateTime    @default(now()) @map("allocated_at")
+  expectedReturnDate DateTime?   @map("expected_return_date")
+  returnedAt         DateTime?   @map("returned_at")
+  checkinNotes       String?     @map("checkin_notes")
+  overdueNotified    Boolean     @default(false) @map("overdue_notified")
+
+  // Partial unique index "one_active_allocation" applied via prisma/sql/constraints.sql
+  @@map("allocations")
+}
+
+model TransferRequest {
+  id          Int            @id @default(autoincrement())
+  assetId     Int            @map("asset_id")
+  asset       Asset          @relation(fields: [assetId], references: [id])
+  fromUserId  Int?           @map("from_user_id")
+  fromUser    User?          @relation("TransferFrom", fields: [fromUserId], references: [id])
+  toUserId    Int?           @map("to_user_id")
+  toUser      User?          @relation("TransferTo", fields: [toUserId], references: [id])
+  status      TransferStatus @default(requested)
+  decidedById Int?           @map("decided_by")
+  decidedBy   User?          @relation("TransferDecidedBy", fields: [decidedById], references: [id])
+  createdAt   DateTime       @default(now()) @map("created_at")
+  decidedAt   DateTime?      @map("decided_at")
+
+  @@map("transfer_requests")
+}
+
+model Booking {
+  id           Int           @id @default(autoincrement())
+  assetId      Int           @map("asset_id")
+  asset        Asset         @relation(fields: [assetId], references: [id])
+  userId       Int           @map("user_id")
+  user         User          @relation(fields: [userId], references: [id])
+  startTs      DateTime      @map("start_ts") @db.Timestamptz(6)
+  endTs        DateTime      @map("end_ts") @db.Timestamptz(6)
+  status       BookingStatus @default(upcoming)
+  reminderSent Boolean       @default(false) @map("reminder_sent")
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  // Overlap exclusion constraint applied via prisma/sql/constraints.sql
+  @@map("bookings")
+}
+
+model MaintenanceRequest {
+  id          Int                 @id @default(autoincrement())
+  assetId     Int                 @map("asset_id")
+  asset       Asset               @relation(fields: [assetId], references: [id])
+  raisedById  Int                 @map("raised_by")
+  raisedBy    User                @relation("RaisedBy", fields: [raisedById], references: [id])
+  issue       String
+  priority    MaintenancePriority @default(medium)
+  photoUrl    String?             @map("photo_url")
+  status      MaintenanceStatus   @default(pending)
+  technician  String?
+  decidedById Int?                @map("decided_by")
+  decidedBy   User?               @relation("MaintDecidedBy", fields: [decidedById], references: [id])
+  createdAt   DateTime            @default(now()) @map("created_at")
+  resolvedAt  DateTime?           @map("resolved_at")
+
+  @@map("maintenance_requests")
+}
+
+model AuditCycle {
+  id                Int              @id @default(autoincrement())
+  name              String
+  scopeDepartmentId Int?             @map("scope_department_id")
+  scopeDepartment   Department?      @relation(fields: [scopeDepartmentId], references: [id])
+  scopeLocation     String?          @map("scope_location")
+  startDate         DateTime         @map("start_date")
+  endDate           DateTime         @map("end_date")
+  status            AuditCycleStatus @default(open)
+  createdById       Int              @map("created_by")
+  createdBy         User             @relation("AuditCreatedBy", fields: [createdById], references: [id])
+  items             AuditItem[]
+
+  @@map("audit_cycles")
+}
+
+model AuditItem {
+  id        Int         @id @default(autoincrement())
+  cycleId   Int         @map("cycle_id")
+  cycle     AuditCycle  @relation(fields: [cycleId], references: [id])
+  assetId   Int         @map("asset_id")
+  asset     Asset       @relation(fields: [assetId], references: [id])
+  auditorId Int?        @map("auditor_id")
+  auditor   User?       @relation("Auditor", fields: [auditorId], references: [id])
+  result    AuditResult @default(pending)
+  notes     String?
+
+  @@unique([cycleId, assetId])
+  @@map("audit_items")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  type      String // asset_assigned | maintenance_approved | booking_reminder | overdue_return | ...
+  message   String
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("notifications")
+}
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?     @map("user_id")
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String // e.g. "asset.create", "allocation.approve"
+  entityType String?  @map("entity_type")
+  entityId   Int?     @map("entity_id")
+  detail     Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("activity_logs")
+}
