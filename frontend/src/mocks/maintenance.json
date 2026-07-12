@@ -1,0 +1,4 @@
+[
+  { "id": 401, "assetId": 103, "assetTag": "AF-0322", "issue": "Hydraulic leak", "priority": "high", "raisedBy": "Rahul Verma", "status": "in_progress", "technician": "Suresh (Ext. Vendor)", "photoUrl": null },
+  { "id": 402, "assetId": 105, "assetTag": "AF-0450", "issue": "Projector bulb flickering", "priority": "medium", "raisedBy": "Aman Singh", "status": "pending", "technician": null, "photoUrl": null }
+]

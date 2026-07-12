@@ -1,0 +1,5 @@
+[
+  { "id": 801, "user": "Priya Sharma", "action": "Approved maintenance request", "entity": "AF-0322", "at": "2026-07-10T17:40:00" },
+  { "id": 802, "user": "Admin User", "action": "Promoted employee to Asset Manager", "entity": "Priya Sharma", "at": "2026-07-09T10:15:00" },
+  { "id": 803, "user": "Aman Singh", "action": "Booked resource", "entity": "Room B2", "at": "2026-07-09T09:50:00" }
+]

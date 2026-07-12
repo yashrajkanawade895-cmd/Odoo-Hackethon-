@@ -1,0 +1,4 @@
+[
+  { "id": 201, "assetId": 101, "assetTag": "AF-0114", "assetName": "MacBook Pro 16\"", "holderUserId": 2, "holder": "Priya Sharma", "allocatedOn": "2026-05-01", "expectedReturnDate": "2026-07-20", "status": "active" },
+  { "id": 202, "assetId": 104, "assetTag": "AF-0032", "assetName": "Ergonomic Chair", "holderUserId": 5, "holder": "Neha Patel", "allocatedOn": "2026-04-26", "expectedReturnDate": "2026-07-01", "status": "overdue" }
+]

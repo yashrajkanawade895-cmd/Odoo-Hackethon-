@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "Electronics", "customFields": { "warranty_months": 24 } },
+  { "id": 2, "name": "Furniture", "customFields": {} },
+  { "id": 3, "name": "Vehicles", "customFields": { "insurance_expiry": null } },
+  { "id": 4, "name": "Rooms", "customFields": { "capacity": null } }
+]

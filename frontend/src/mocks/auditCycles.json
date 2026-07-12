@@ -1,0 +1,17 @@
+[
+  {
+    "id": 501,
+    "name": "Q3 HQ Floor 3 Audit",
+    "scopeDepartmentId": 1,
+    "scopeLocation": "HQ - 3F",
+    "startDate": "2026-07-10",
+    "endDate": "2026-07-17",
+    "status": "open",
+    "auditorIds": [2],
+    "auditors": ["Priya Sharma"],
+    "items": [
+      { "id": 601, "assetId": 101, "assetTag": "AF-0114", "assetName": "MacBook Pro 16\"", "result": "pending", "notes": null },
+      { "id": 602, "assetId": 106, "assetTag": "AF-0501", "assetName": "Dell Monitor 24\"", "result": "pending", "notes": null }
+    ]
+  }
+]
