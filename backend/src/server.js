@@ -12,6 +12,7 @@ import { auditCyclesRouter, auditItemsRouter } from "./modules/audits/audits.rou
 import departmentsRoutes from "./modules/departments/departments.routes.js";
 import categoriesRoutes from "./modules/categories/categories.routes.js";
 import employeesRoutes from "./modules/employees/employees.routes.js";
+import projectsRoutes from "./modules/projects/projects.routes.js";
 import { activityLogger } from "./middleware/activityLog.js";
 
 const app = express();
@@ -38,6 +39,7 @@ app.use("/audit-items", auditItemsRouter);
 app.use("/departments", departmentsRoutes);
 app.use("/categories", categoriesRoutes);
 app.use("/employees", employeesRoutes);
+app.use("/projects", projectsRoutes);
 
 app.use((_req, res) => res.status(404).json({ error: "not found" }));
 

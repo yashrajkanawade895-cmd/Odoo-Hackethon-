@@ -12,7 +12,6 @@ const createSchema = z.object({
   isBookable:      z.boolean().default(false),
   acquisitionDate: z.coerce.date().optional(),
   acquisitionCost: z.number().positive().optional(),
-  customData:      z.record(z.unknown()).optional(), // freeform JSONB
 });
 
 const patchSchema = z.object({
@@ -24,7 +23,6 @@ const patchSchema = z.object({
   isBookable:      z.boolean().optional(),
   acquisitionDate: z.coerce.date().optional(),
   acquisitionCost: z.number().positive().optional(),
-  customData:      z.record(z.unknown()).optional(),
   // NOTE: status can only be changed by allocation/maintenance/audit flows,
   // not directly via PATCH. This is enforced here.
 });
@@ -131,7 +129,6 @@ export async function createAsset(req, res, next) {
         isBookable:      parsed.data.isBookable,
         acquisitionDate: parsed.data.acquisitionDate ?? null,
         acquisitionCost: parsed.data.acquisitionCost ?? null,
-        customData:      parsed.data.customData ?? undefined,
       },
       include: assetInclude,
     });
@@ -180,7 +177,6 @@ export async function updateAsset(req, res, next) {
         ...(parsed.data.isBookable !== undefined   && { isBookable: parsed.data.isBookable }),
         ...(parsed.data.acquisitionDate && { acquisitionDate: parsed.data.acquisitionDate }),
         ...(parsed.data.acquisitionCost && { acquisitionCost: parsed.data.acquisitionCost }),
-        ...(parsed.data.customData      && { customData: parsed.data.customData }),
       },
       include: assetInclude,
     });
