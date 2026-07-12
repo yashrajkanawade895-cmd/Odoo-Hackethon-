@@ -19,7 +19,7 @@ export default function Allocations() {
   })
   const { data: assets = [] } = useQuery({
     queryKey: ['assets'],
-    queryFn: () => api.assets.getAssets(),
+    queryFn: () => api.assets.getAssets({ bookable: false }),
   })
   const { data: employees = [] } = useQuery({
     queryKey: ['employees'],

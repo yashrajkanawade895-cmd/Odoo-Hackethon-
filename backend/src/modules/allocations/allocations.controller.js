@@ -13,7 +13,7 @@ const createSchema = z.object({
   { message: "holderUserId or holderDepartmentId required" }
 ).refine(
   (d) => !d.expectedReturnDate || d.expectedReturnDate > new Date(),
-  { message: "error, select a present or fututre date", path: ["expectedReturnDate"] }
+  { message: "error: past date:", path: ["expectedReturnDate"] }
 );
 
 const returnSchema = z.object({
@@ -34,6 +34,7 @@ export async function createAllocation(req, res, next) {
     // Asset must exist and be available
     const asset = await prisma.asset.findUnique({ where: { id: assetId } });
     if (!asset) return res.status(404).json({ error: "asset not found" });
+    if (asset.isBookable) return res.status(400).json({ error: "asset is bookable and cannot be allocated" });
 
     if (asset.status !== "available") {
       // Check if there's an active allocation to give a helpful message
