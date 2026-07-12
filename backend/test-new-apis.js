@@ -5,7 +5,7 @@ async function run() {
   const loginRes = await fetch("http://localhost:5000/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "admin@assetflow.test", password: "pass123" })
+    body: JSON.stringify({ email: "admin@bento.test", password: "pass123" })
   });
   const loginData = await loginRes.json();
   if (!loginRes.ok) {
@@ -45,7 +45,7 @@ async function run() {
   console.log(`Found ${empData.length} employees`);
 
   // 4. Update an employee role (find Priya)
-  const priya = empData.find(e => e.email === "priya@assetflow.test");
+  const priya = empData.find(e => e.email === "priya@bento.test");
   if (priya) {
     console.log(`Updating role for ${priya.name}...`);
     const patchRes = await fetch(`http://localhost:5000/employees/${priya.id}/role`, {

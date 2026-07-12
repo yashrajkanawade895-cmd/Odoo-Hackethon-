@@ -1,4 +1,4 @@
-// AssetFlow database schema — 12 tables, see docs/PIPELINE.md section 4.
+// Bento database schema — 12 tables, see docs/PIPELINE.md section 4.
 // After `npm run migrate`, ALWAYS run `npm run db:constraints` to apply the
 // partial unique index (no double allocation), the booking overlap exclusion
 // constraint, and the asset tag sequence — Prisma cannot express those.
@@ -26,6 +26,20 @@ enum ActiveStatus {
   inactive
 }
 
+enum FocusStatus {
+  available
+  focus_time
+  in_meeting
+  wfh
+  away
+}
+
+enum ProjectStatus {
+  active
+  paused
+  completed
+}
+
 enum AssetStatus {
   available
   allocated
@@ -40,6 +54,14 @@ enum TransferStatus {
   requested
   approved
   rejected
+}
+
+enum MeetingPurpose {
+  client
+  internal
+  interview
+  training
+  town_hall
 }
 
 enum BookingStatus {
@@ -89,6 +111,15 @@ model User {
   departmentId Int?         @map("department_id")
   department   Department?  @relation("DeptMembers", fields: [departmentId], references: [id])
   createdAt    DateTime     @default(now()) @map("created_at")
+  contactEmail String?      @map("contact_email")
+  phone        String?
+  focusStatus  FocusStatus  @default(available) @map("focus_status")
+  projectId    Int?         @map("project_id")
+  project      Project?     @relation(fields: [projectId], references: [id])
+  managerId    Int?         @map("manager_id")
+  manager      User?        @relation("ManagerHierarchy", fields: [managerId], references: [id])
+  
+  reports            User[]               @relation("ManagerHierarchy")
 
   headOf             Department[]         @relation("DeptHead")
   allocations        Allocation[]         @relation("Holder")
@@ -119,8 +150,24 @@ model Department {
   members     User[]       @relation("DeptMembers")
   allocations Allocation[] @relation("DeptAllocations")
   auditCycles AuditCycle[]
+  projects    Project[]
 
   @@map("departments")
+}
+
+model Project {
+  id              Int           @id @default(autoincrement())
+  name            String
+  description     String?
+  status          ProjectStatus @default(active)
+  departmentId    Int?          @map("department_id")
+  department      Department?   @relation(fields: [departmentId], references: [id])
+  meetingLocation String?       @map("meeting_location")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  members         User[]
+
+  @@map("projects")
 }
 
 model AssetCategory {
@@ -200,6 +247,9 @@ model Booking {
   user         User          @relation(fields: [userId], references: [id])
   startTs      DateTime      @map("start_ts") @db.Timestamptz(6)
   endTs        DateTime      @map("end_ts") @db.Timestamptz(6)
+  purpose      MeetingPurpose @default(internal)
+  bookedFor    String?       @map("booked_for")
+  attendees    Int?
   status       BookingStatus @default(upcoming)
   reminderSent Boolean       @default(false) @map("reminder_sent")
   createdAt    DateTime      @default(now()) @map("created_at")

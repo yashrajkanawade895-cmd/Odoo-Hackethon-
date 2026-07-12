@@ -1,7 +1,7 @@
 [
-  { "id": 2, "name": "Priya Sharma", "email": "priya@acme.com", "department": "Engineering", "departmentId": 1, "role": "asset_manager", "status": "active" },
-  { "id": 4, "name": "Raj Kumar", "email": "raj@acme.com", "department": "Engineering", "departmentId": 1, "role": "employee", "status": "active" },
-  { "id": 3, "name": "Aman Singh", "email": "aman@acme.com", "department": "Design", "departmentId": 2, "role": "dept_head", "status": "active" },
-  { "id": 5, "name": "Neha Patel", "email": "neha@acme.com", "department": "Frontend", "departmentId": 3, "role": "employee", "status": "active" },
-  { "id": 6, "name": "Rahul Verma", "email": "rahul@acme.com", "department": "Facilities", "departmentId": 4, "role": "employee", "status": "inactive" }
+  { "id": 2, "name": "Priya Sharma", "email": "priya@acme.com", "department": { "id": 1, "name": "Engineering" }, "departmentId": 1, "role": "asset_manager", "status": "active", "focusStatus": "in_meeting", "project": { "name": "Project Atlas" }, "contactEmail": "priya@acme.com", "phone": "+1 234 567 8900", "manager": { "id": 1, "name": "Admin User" } },
+  { "id": 4, "name": "Raj Kumar", "email": "raj@acme.com", "department": { "id": 1, "name": "Engineering" }, "departmentId": 1, "role": "employee", "status": "active", "focusStatus": "wfh", "project": null, "contactEmail": "raj@acme.com", "phone": "+1 234 567 8901", "manager": { "id": 2, "name": "Priya Sharma" } },
+  { "id": 3, "name": "Aman Singh", "email": "aman@acme.com", "department": { "id": 2, "name": "Design" }, "departmentId": 2, "role": "dept_head", "status": "active", "focusStatus": "focus_time", "project": { "name": "Website Redesign" }, "contactEmail": "aman@acme.com", "phone": "+1 234 567 8902", "manager": { "id": 1, "name": "Admin User" } },
+  { "id": 5, "name": "Neha Patel", "email": "neha@acme.com", "department": { "id": 3, "name": "Frontend" }, "departmentId": 3, "role": "employee", "status": "active", "focusStatus": "available", "project": { "name": "Project Atlas" }, "contactEmail": "neha@acme.com", "phone": "+1 234 567 8903", "manager": { "id": 2, "name": "Priya Sharma" } },
+  { "id": 6, "name": "Rahul Verma", "email": "rahul@acme.com", "department": { "id": 4, "name": "Facilities" }, "departmentId": 4, "role": "employee", "status": "inactive", "focusStatus": "away", "project": null, "contactEmail": "rahul@acme.com", "phone": "+1 234 567 8904", "manager": { "id": 3, "name": "Aman Singh" } }
 ]

@@ -3,8 +3,8 @@ import { api } from '../api/index.js'
 
 const AuthContext = createContext(null)
 
-const TOKEN_KEY = 'assetflow_token'
-const USER_KEY = 'assetflow_user'
+const TOKEN_KEY = 'bento_token'
+const USER_KEY = 'bento_user'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {

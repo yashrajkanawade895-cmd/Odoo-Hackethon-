@@ -158,6 +158,7 @@ export default function Assets() {
           <option value="under_maintenance">Under maintenance</option>
           <option value="lost">Lost</option>
           <option value="retired">Retired</option>
+          <option value="disposed">Disposed</option>
         </select>
       </div>
 

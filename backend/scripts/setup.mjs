@@ -52,4 +52,4 @@ try {
 
 console.log("\n Setup complete. Start the API with:  npm run dev");
 console.log("   Seeded logins (password: pass123):");
-console.log("     admin@assetflow.test · manager@assetflow.test · head@assetflow.test · priya@assetflow.test\n");
+console.log("     admin@bento.test · manager@bento.test · head@bento.test · priya@bento.test\n");

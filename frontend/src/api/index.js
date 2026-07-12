@@ -14,6 +14,7 @@ import * as audits from './audits.js'
 import * as notifications from './notifications.js'
 import * as logs from './logs.js'
 import * as reports from './reports.js'
+import * as projects from './projects.js'
 
 export const api = {
   auth,
@@ -30,6 +31,7 @@ export const api = {
   notifications,
   logs,
   reports,
+  projects,
 }
 
 export { USE_MOCKS } from './client.js'

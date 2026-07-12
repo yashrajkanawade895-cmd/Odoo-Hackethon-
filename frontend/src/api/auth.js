@@ -36,10 +36,17 @@ export function login(email, password) {
   )
 }
 
-// GET /auth/me — fresh from DB so role promotions show without re-login.
 export function me() {
   return call(
-    () => mockDelay(mock.users[0]),
+    () => {
+      const token = localStorage.getItem('bento_token')
+      if (token && token.startsWith('mock-jwt-')) {
+        const id = parseInt(token.replace('mock-jwt-', ''), 10)
+        const user = mock.users.find(u => u.id === id)
+        if (user) return mockDelay(user)
+      }
+      return mockDelay(mock.users[0])
+    },
     () => client.get('/auth/me').then((r) => r.data)
   )
 }

@@ -1,3 +1,10 @@
 node_modules
 dist
 .env
+
+# local tool state — never commit
+.claude/
+.vite/
+
+# stale root-level app copy (the real app lives in frontend/)
+/src/

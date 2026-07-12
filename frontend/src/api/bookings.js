@@ -22,8 +22,8 @@ export function getResourceBookings(resourceId, params = {}) {
   )
 }
 
-// POST /bookings { assetId, startTs, endTs } -> 409 booking_overlap
-export function createBooking({ assetId, startTs, endTs, resourceName, bookedBy }) {
+// POST /bookings { assetId, startTs, endTs, purpose, bookedFor, attendees } -> 409 booking_overlap
+export function createBooking({ assetId, startTs, endTs, resourceName, bookedBy, purpose, bookedFor, attendees }) {
   return call(
     () => {
       const newStart = new Date(startTs)
@@ -32,11 +32,11 @@ export function createBooking({ assetId, startTs, endTs, resourceName, bookedBy 
         (b) => b.resourceId === assetId && b.status !== 'cancelled' && overlaps(new Date(b.startTs), new Date(b.endTs), newStart, newEnd)
       )
       if (conflict) return mockConflict({ error: 'booking_overlap' })
-      const booking = { id: mock.length + 301, resourceId: assetId, resource: resourceName, bookedBy, startTs, endTs, status: 'upcoming' }
+      const booking = { id: mock.length + 301, resourceId: assetId, resource: resourceName, bookedBy, startTs, endTs, status: 'upcoming', purpose, bookedFor, attendees }
       mock = [...mock, booking]
       return mockDelay(booking)
     },
-    () => client.post('/bookings', { assetId, startTs, endTs }).then((r) => r.data)
+    () => client.post('/bookings', { assetId, startTs, endTs, purpose, bookedFor, attendees }).then((r) => r.data)
   )
 }
 
@@ -45,7 +45,6 @@ export function getMyBookings() {
   return call(() => mockDelay(mock), () => client.get('/my-bookings').then((r) => r.data))
 }
 
-// PATCH /bookings/:id { action: "cancel" } | { startTs, endTs } to reschedule
 export function updateBooking(id, patch) {
   return call(
     () => {
@@ -53,5 +52,12 @@ export function updateBooking(id, patch) {
       return mockDelay(mock.find((b) => b.id === id))
     },
     () => client.patch(`/bookings/${id}`, patch).then((r) => r.data)
+  )
+}
+
+export function requestReschedule(id, reason) {
+  return call(
+    () => mockDelay({ success: true, message: "Reschedule request sent" }),
+    () => client.post(`/bookings/${id}/request-reschedule`, { reason }).then((r) => r.data)
   )
 }

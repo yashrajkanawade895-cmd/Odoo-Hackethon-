@@ -20,10 +20,10 @@ async function main() {
   // exist so the demo can start with a working admin. Password: pass123
   const password = await hash("pass123");
   const users = [
-    { name: "Admin User", email: "admin@assetflow.test", role: "admin", departmentId: it.id },
-    { name: "Meera Manager", email: "manager@assetflow.test", role: "asset_manager", departmentId: it.id },
-    { name: "Dev Head", email: "head@assetflow.test", role: "dept_head", departmentId: ops.id },
-    { name: "Priya Employee", email: "priya@assetflow.test", role: "employee", departmentId: hr.id },
+    { name: "Admin User", email: "admin@bento.test", role: "admin", departmentId: it.id },
+    { name: "Meera Manager", email: "manager@bento.test", role: "asset_manager", departmentId: it.id },
+    { name: "Dev Head", email: "head@bento.test", role: "dept_head", departmentId: ops.id },
+    { name: "Priya Employee", email: "priya@bento.test", role: "employee", departmentId: hr.id },
   ];
   for (const u of users) {
     await prisma.user.upsert({
@@ -33,7 +33,7 @@ async function main() {
     });
   }
   // point dept heads at real users
-  const head = await prisma.user.findUnique({ where: { email: "head@assetflow.test" } });
+  const head = await prisma.user.findUnique({ where: { email: "head@bento.test" } });
   await prisma.department.update({ where: { id: ops.id }, data: { headId: head.id } });
 
   // --- Categories ---

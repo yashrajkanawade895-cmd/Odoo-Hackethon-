@@ -1,4 +1,4 @@
--- AssetFlow database-level rules Prisma cannot express.
+-- Bento database-level rules Prisma cannot express.
 -- Run after every fresh migrate:  npm run db:constraints
 -- Safe to re-run (idempotent).
 
