@@ -213,7 +213,7 @@ export async function getAssetHistory(req, res, next) {
       prisma.maintenanceRequest.findMany({
         where: { assetId: id },
         include: {
-          reportedBy: { select: { id: true, name: true } },
+          raisedBy: { select: { id: true, name: true } },
         },
         orderBy: { createdAt: "desc" },
       }),

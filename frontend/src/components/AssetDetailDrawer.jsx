@@ -1,6 +1,7 @@
 import { X, MapPin, Building2, Calendar, Wallet, Wrench, ArrowLeftRight } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import StatusPill from './StatusPill.jsx'
-import { seedAllocations, seedMaintenanceRequests } from '../data/seedData.js'
+import { api } from '../api/index.js'
 
 function QrPlaceholder({ value }) {
   // Deterministic pseudo-QR pattern from the tag — a visual stand-in until a real QR lib is wired up.
@@ -20,10 +21,17 @@ function QrPlaceholder({ value }) {
 }
 
 export default function AssetDetailDrawer({ asset, onClose }) {
+  const { data: history, isLoading } = useQuery({
+    queryKey: ['asset-history', asset?.id],
+    queryFn: () => api.assets.getAssetHistory(asset.id),
+    enabled: !!asset,
+  })
+
   if (!asset) return null
 
-  const allocationHistory = seedAllocations.filter((a) => a.assetTag === asset.tag)
-  const maintenanceHistory = seedMaintenanceRequests.filter((m) => m.assetTag === asset.tag)
+  const entries = history || []
+  const allocationHistory = entries.filter((h) => h.type === 'allocation')
+  const maintenanceHistory = entries.filter((h) => h.type === 'maintenance')
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -40,7 +48,7 @@ export default function AssetDetailDrawer({ asset, onClose }) {
           {/* Passport header */}
           <div className="bg-ink text-white rounded-xl p-5 flex items-start justify-between gap-4 mb-6">
             <div className="min-w-0">
-              <p className="text-xs text-white/50 mb-1">{asset.category}</p>
+              <p className="text-xs text-white/50 mb-1">{asset.category?.name || '—'}</p>
               <h2 className="text-lg font-semibold truncate mb-1">{asset.name}</h2>
               <p className="font-mono-tag text-status-available text-sm tracking-wide">{asset.tag}</p>
               <div className="mt-3">
@@ -54,24 +62,24 @@ export default function AssetDetailDrawer({ asset, onClose }) {
           <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="border border-line rounded-lg px-3 py-2.5">
               <p className="text-[10px] uppercase tracking-wide text-ink/40 mb-1">Serial number</p>
-              <p className="text-sm font-mono-tag text-ink">{asset.serial}</p>
+              <p className="text-sm font-mono-tag text-ink">{asset.serialNumber || '—'}</p>
             </div>
             <div className="border border-line rounded-lg px-3 py-2.5">
               <p className="text-[10px] uppercase tracking-wide text-ink/40 mb-1">Condition</p>
-              <p className="text-sm text-ink">{asset.condition || '—'}</p>
+              <p className="text-sm text-ink capitalize">{asset.condition || '—'}</p>
             </div>
             <div className="border border-line rounded-lg px-3 py-2.5 flex items-start gap-2">
               <Building2 size={14} className="text-ink/40 mt-0.5 shrink-0" />
               <div>
                 <p className="text-[10px] uppercase tracking-wide text-ink/40 mb-1">Department</p>
-                <p className="text-sm text-ink">{asset.department}</p>
+                <p className="text-sm text-ink">—</p>
               </div>
             </div>
             <div className="border border-line rounded-lg px-3 py-2.5 flex items-start gap-2">
               <MapPin size={14} className="text-ink/40 mt-0.5 shrink-0" />
               <div>
                 <p className="text-[10px] uppercase tracking-wide text-ink/40 mb-1">Location</p>
-                <p className="text-sm text-ink">{asset.location}</p>
+                <p className="text-sm text-ink">{asset.location || '—'}</p>
               </div>
             </div>
             <div className="border border-line rounded-lg px-3 py-2.5 flex items-start gap-2">
@@ -86,7 +94,7 @@ export default function AssetDetailDrawer({ asset, onClose }) {
               <div>
                 <p className="text-[10px] uppercase tracking-wide text-ink/40 mb-1">Acquisition cost</p>
                 <p className="text-sm font-mono-tag text-ink">
-                  {asset.acquisitionCost ? `₹${asset.acquisitionCost.toLocaleString('en-IN')}` : '—'}
+                  {asset.acquisitionCost ? `₹${Number(asset.acquisitionCost).toLocaleString('en-IN')}` : '—'}
                 </p>
               </div>
             </div>
@@ -97,18 +105,23 @@ export default function AssetDetailDrawer({ asset, onClose }) {
             <p className="text-xs font-medium text-ink/70 mb-2 flex items-center gap-1.5">
               <ArrowLeftRight size={13} /> Allocation history
             </p>
-            {allocationHistory.length === 0 ? (
+            {isLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="h-9 bg-surface rounded-md animate-pulse" />
+                ))}
+              </div>
+            ) : allocationHistory.length === 0 ? (
               <p className="text-xs text-ink/40 border border-dashed border-line rounded-md px-3 py-3 text-center">
                 No allocation history yet.
               </p>
             ) : (
               <div className="space-y-2">
-                {allocationHistory.map((a) => (
-                  <div key={a.id} className="border border-line rounded-md px-3 py-2 text-xs flex items-center justify-between">
-                    <span className="text-ink">{a.holder}</span>
-                    <span className="text-ink/50 font-mono-tag">{a.allocatedOn} → {a.expectedReturn}</span>
-                    <span className={`px-2 py-0.5 rounded-full ${a.status === 'overdue' ? 'bg-status-lost/10 text-status-lost' : a.status === 'returned' ? 'bg-status-retired/10 text-status-retired' : 'bg-status-allocated/10 text-status-allocated'}`}>
-                      {a.status}
+                {allocationHistory.map((a, i) => (
+                  <div key={i} className="border border-line rounded-md px-3 py-2 text-xs flex items-center justify-between gap-2">
+                    <span className="text-ink">{a.holderUser?.name || '—'}</span>
+                    <span className="text-ink/50 font-mono-tag">
+                      {a.allocatedAt || '—'} → {a.returnedAt || 'present'}
                     </span>
                   </div>
                 ))}
@@ -121,19 +134,25 @@ export default function AssetDetailDrawer({ asset, onClose }) {
             <p className="text-xs font-medium text-ink/70 mb-2 flex items-center gap-1.5">
               <Wrench size={13} /> Maintenance history
             </p>
-            {maintenanceHistory.length === 0 ? (
+            {isLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="h-9 bg-surface rounded-md animate-pulse" />
+                ))}
+              </div>
+            ) : maintenanceHistory.length === 0 ? (
               <p className="text-xs text-ink/40 border border-dashed border-line rounded-md px-3 py-3 text-center">
                 No maintenance requests yet.
               </p>
             ) : (
               <div className="space-y-2">
-                {maintenanceHistory.map((m) => (
-                  <div key={m.id} className="border border-line rounded-md px-3 py-2 text-xs">
+                {maintenanceHistory.map((m, i) => (
+                  <div key={i} className="border border-line rounded-md px-3 py-2 text-xs">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-ink">{m.issue}</span>
-                      <span className="text-ink/40 capitalize">{m.status.replace('_', ' ')}</span>
+                      <span className="text-ink/40 capitalize">{(m.status || '').replace('_', ' ')}</span>
                     </div>
-                    <p className="text-ink/45">Raised by {m.raisedBy}{m.technician ? ` · ${m.technician}` : ''}</p>
+                    <p className="text-ink/45 font-mono-tag">{m.createdAt || '—'}</p>
                   </div>
                 ))}
               </div>

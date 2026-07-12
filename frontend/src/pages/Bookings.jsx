@@ -1,21 +1,51 @@
 import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import PageHeader from '../components/PageHeader.jsx'
 import { Button } from '../components/ui/button.jsx'
-import { seedBookings, seedResources } from '../data/seedData.js'
-
-function overlaps(existingStart, existingEnd, newStart, newEnd) {
-  // new.start < existing.end AND new.end > existing.start -> reject. Back-to-back allowed.
-  return newStart < existingEnd && newEnd > existingStart
-}
+import { api } from '../api/index.js'
 
 export default function Bookings() {
-  const [bookings, setBookings] = useState(seedBookings)
+  const qc = useQueryClient()
   const [resource, setResource] = useState('')
   const [date, setDate] = useState('2026-07-14')
   const [startTime, setStartTime] = useState('09:30')
   const [endTime, setEndTime] = useState('10:30')
   const [error, setError] = useState('')
+
+  const { data: resources = [] } = useQuery({
+    queryKey: ['resources'],
+    queryFn: () => api.bookings.getResources(),
+  })
+
+  const { data: bookings = [], isLoading } = useQuery({
+    queryKey: ['my-bookings'],
+    queryFn: () => api.bookings.getMyBookings(),
+  })
+
+  const createBooking = useMutation({
+    mutationFn: (v) => api.bookings.createBooking(v),
+    onSuccess: () => {
+      setError('')
+      qc.invalidateQueries({ queryKey: ['my-bookings'] })
+      qc.invalidateQueries({ queryKey: ['resource-bookings'] })
+    },
+    onError: (err) => {
+      if (err.status === 409 && err.body?.error === 'booking_overlap') {
+        setError('That time slot overlaps an existing booking for this resource.')
+      } else {
+        setError(err.message || 'Could not create the booking. Please try again.')
+      }
+    },
+  })
+
+  const cancelBooking = useMutation({
+    mutationFn: (id) => api.bookings.updateBooking(id, { action: 'cancel' }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-bookings'] })
+      qc.invalidateQueries({ queryKey: ['resource-bookings'] })
+    },
+  })
 
   const book = (e) => {
     e.preventDefault()
@@ -29,27 +59,12 @@ export default function Bookings() {
       return
     }
 
-    const conflict = bookings.find((b) => {
-      if (b.resource !== resource || b.status === 'cancelled') return false
-      return overlaps(new Date(b.start), new Date(b.end), newStart, newEnd)
+    createBooking.mutate({
+      assetId: Number(resource),
+      startTs: newStart.toISOString(),
+      endTs: newEnd.toISOString(),
     })
-
-    if (conflict) {
-      setError(
-        `${resource} is already booked ${new Date(conflict.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}–${new Date(
-          conflict.end
-        ).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}. This overlaps — choose a different slot.`
-      )
-      return
-    }
-
-    setBookings((prev) => [
-      ...prev,
-      { id: `b${prev.length + 1}`, resource, bookedBy: 'You', start: `${date}T${startTime}`, end: `${date}T${endTime}`, status: 'upcoming' },
-    ])
   }
-
-  const cancel = (id) => setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: 'cancelled' } : b)))
 
   return (
     <>
@@ -60,8 +75,8 @@ export default function Bookings() {
         <div className="grid grid-cols-4 gap-3">
           <select className="h-9 rounded-md border border-line bg-surface px-3 text-sm" value={resource} onChange={(e) => setResource(e.target.value)}>
             <option value="">Select resource</option>
-            {seedResources.map((r) => (
-              <option key={r.id} value={r.name}>{r.name}</option>
+            {resources.map((r) => (
+              <option key={r.id} value={r.id}>{r.name}</option>
             ))}
           </select>
           <input type="date" className="h-9 rounded-md border border-line bg-surface px-3 text-sm" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -69,7 +84,7 @@ export default function Bookings() {
           <input type="time" className="h-9 rounded-md border border-line bg-surface px-3 text-sm" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
         </div>
         <div className="mt-3">
-          <Button type="submit">Book slot</Button>
+          <Button type="submit" disabled={createBooking.isPending}>{createBooking.isPending ? 'Booking…' : 'Book slot'}</Button>
         </div>
         {error && (
           <div className="mt-3 flex items-center gap-2 text-sm text-status-lost bg-status-lost/5 border border-status-lost/30 rounded-md px-3 py-2">
@@ -91,12 +106,22 @@ export default function Bookings() {
             </tr>
           </thead>
           <tbody>
-            {bookings.map((b) => (
+            {isLoading && (
+              <tr className="border-t border-line">
+                <td colSpan={6} className="px-4 py-6 text-center text-ink/50">Loading bookings…</td>
+              </tr>
+            )}
+            {!isLoading && bookings.length === 0 && (
+              <tr className="border-t border-line">
+                <td colSpan={6} className="px-4 py-6 text-center text-ink/50">No bookings yet. Book a resource above to get started.</td>
+              </tr>
+            )}
+            {!isLoading && bookings.map((b) => (
               <tr key={b.id} className="border-t border-line">
-                <td className="px-4 py-2.5 text-ink">{b.resource}</td>
-                <td className="px-4 py-2.5 text-ink/70">{b.bookedBy}</td>
-                <td className="px-4 py-2.5 font-mono-tag text-ink/60">{new Date(b.start).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</td>
-                <td className="px-4 py-2.5 font-mono-tag text-ink/60">{new Date(b.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                <td className="px-4 py-2.5 text-ink">{b.asset?.name}</td>
+                <td className="px-4 py-2.5 text-ink/70">You</td>
+                <td className="px-4 py-2.5 font-mono-tag text-ink/60">{new Date(b.startTs).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</td>
+                <td className="px-4 py-2.5 font-mono-tag text-ink/60">{new Date(b.endTs).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                 <td className="px-4 py-2.5">
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
                     b.status === 'cancelled' ? 'bg-status-retired/10 text-status-retired' : 'bg-status-allocated/10 text-status-allocated'
@@ -105,8 +130,14 @@ export default function Bookings() {
                   </span>
                 </td>
                 <td className="px-4 py-2.5">
-                  {b.status === 'upcoming' && (
-                    <button onClick={() => cancel(b.id)} className="text-xs text-accent hover:underline">Cancel</button>
+                  {(b.status === 'upcoming' || b.status === 'ongoing') && (
+                    <button
+                      onClick={() => cancelBooking.mutate(b.id)}
+                      disabled={cancelBooking.isPending}
+                      className="text-xs text-accent hover:underline disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
                   )}
                 </td>
               </tr>
