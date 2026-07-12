@@ -8,6 +8,7 @@ import assetRoutes from "./modules/assets/assets.routes.js";
 import { resourcesRouter, bookingsRouter, myBookingsRouter } from "./modules/bookings/bookings.routes.js";
 import maintenanceRoutes from "./modules/maintenance/maintenance.routes.js";
 import { dashboardRouter, notificationsRouter, activityLogsRouter, reportsRouter } from "./modules/dashboard/dashboard.routes.js";
+import { auditCyclesRouter, auditItemsRouter } from "./modules/audits/audits.routes.js";
 
 const app = express();
 app.use(cors());
@@ -27,6 +28,8 @@ app.use("/dashboard", dashboardRouter);
 app.use("/notifications", notificationsRouter);
 app.use("/activity-logs", activityLogsRouter);
 app.use("/reports", reportsRouter);
+app.use("/audit-cycles", auditCyclesRouter);
+app.use("/audit-items", auditItemsRouter);
 // Phase 1 (Harshit): app.use("/departments", ...), app.use("/categories", ...), app.use("/employees", ...)
 // Phase 2+: assets, bookings, maintenance, audits, dashboard, reports
 
