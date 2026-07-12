@@ -11,6 +11,9 @@ const createSchema = z.object({
 }).refine(
   (d) => d.holderUserId || d.holderDepartmentId,
   { message: "holderUserId or holderDepartmentId required" }
+).refine(
+  (d) => !d.expectedReturnDate || d.expectedReturnDate > new Date(),
+  { message: "expectedReturnDate cannot be in the past", path: ["expectedReturnDate"] }
 );
 
 const returnSchema = z.object({

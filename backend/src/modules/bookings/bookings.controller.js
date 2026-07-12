@@ -8,7 +8,8 @@ const bookingSchema = z.object({
   assetId: z.number().int().positive(),
   startTs: z.coerce.date(),
   endTs: z.coerce.date(),
-}).refine(data => data.endTs > data.startTs, { message: "endTs must be after startTs" });
+}).refine(data => data.endTs > data.startTs, { message: "endTs must be after startTs" })
+  .refine(data => data.startTs > new Date(), { message: "startTs cannot be in the past", path: ["startTs"] });
 
 const patchSchema = z.object({
   action: z.enum(["cancel"]).optional(),
@@ -18,7 +19,8 @@ const patchSchema = z.object({
   if (data.action) return true;
   if (data.startTs && data.endTs) return data.endTs > data.startTs;
   return false;
-}, { message: "Provide either action='cancel' or BOTH startTs and endTs to reschedule" });
+}, { message: "Provide either action='cancel' or BOTH startTs and endTs to reschedule" })
+  .refine(data => !data.startTs || data.startTs > new Date(), { message: "startTs cannot be in the past", path: ["startTs"] });
 
 // ── GET /resources ──────────────────────────────────────────────────────────
 export async function listResources(req, res, next) {
