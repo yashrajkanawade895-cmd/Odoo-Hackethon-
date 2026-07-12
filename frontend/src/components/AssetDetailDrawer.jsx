@@ -1,21 +1,15 @@
 import { X, MapPin, Building2, Calendar, Wallet, Wrench, ArrowLeftRight } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { QRCodeSVG } from 'qrcode.react'
 import StatusPill from './StatusPill.jsx'
 import { api } from '../api/index.js'
 
-function QrPlaceholder({ value }) {
-  // Deterministic pseudo-QR pattern from the tag — a visual stand-in until a real QR lib is wired up.
-  let seed = 0
-  for (let i = 0; i < value.length; i++) seed = (seed * 31 + value.charCodeAt(i)) % 997
-  const cells = Array.from({ length: 49 }, (_, i) => {
-    seed = (seed * 1103515245 + 12345) % 233280
-    return seed % 5 === 0
-  })
+function AssetQr({ value }) {
+  // Real scannable QR of the asset tag — scanning shows the tag to look up.
   return (
-    <div className="w-24 h-24 bg-white border border-line rounded-md p-1.5 grid grid-cols-7 gap-[1px] shrink-0">
-      {cells.map((on, i) => (
-        <div key={i} className={on ? 'bg-ink' : 'bg-white'} />
-      ))}
+    <div className="bg-white border border-line rounded-md p-1.5 shrink-0 flex flex-col items-center gap-1">
+      <QRCodeSVG value={value} size={84} />
+      <span className="text-[9px] text-ink/50">Scan to look up</span>
     </div>
   )
 }
@@ -55,7 +49,7 @@ export default function AssetDetailDrawer({ asset, onClose }) {
                 <StatusPill status={asset.status === 'under_maintenance' ? 'maintenance' : asset.status} />
               </div>
             </div>
-            <QrPlaceholder value={asset.tag} />
+            <AssetQr value={asset.tag} />
           </div>
 
           {/* Core details */}

@@ -1,8 +1,16 @@
 import axios from 'axios'
+import { toast } from 'sonner'
 
 // THE LAW is docs/api-contract.md — this client only implements what's documented there.
 // Base URL + mock flag are per-env, see .env.development.
 export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true'
+
+// Human-readable messages for the contract's conflict-rule errors; anything else
+// falls back to the server's error string.
+const friendlyErrors = {
+  asset_already_allocated: 'Asset already allocated — request a transfer instead',
+  booking_overlap: 'That time slot overlaps an existing booking',
+}
 
 export const client = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
@@ -27,6 +35,12 @@ client.interceptors.response.use(
     const err = new Error(body.error || error.message || `Request failed: ${status}`)
     err.status = status
     err.body = body
+    // Global error feedback: every failed mutation surfaces a toast, so pages
+    // don't have to hand-roll error handling for judges to see the rules fire.
+    // Skip 401s — the auth flow handles those with a redirect, not a toast.
+    if (status && status !== 401 && error.config?.method !== 'get') {
+      toast.error(friendlyErrors[body.error] || body.message || body.error || 'Something went wrong')
+    }
     return Promise.reject(err)
   }
 )

@@ -105,6 +105,41 @@ export async function updateEmployeeRole(req, res, next) {
   }
 }
 
+// ── PATCH /employees/:id/focus ──────────────────────────────────────────────
+// Users set their own focus status; admins can set anyone's.
+const focusSchema = z.object({
+  focusStatus: z.enum(["available", "focus_time", "in_meeting", "wfh", "away"]),
+});
+
+export async function updateEmployeeFocus(req, res, next) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) return res.status(400).json({ error: "invalid id" });
+
+    if (req.user.id !== id && req.user.role !== "admin") {
+      return res.status(403).json({ error: "forbidden" });
+    }
+
+    const parsed = focusSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: "invalid input", details: parsed.error.flatten() });
+    }
+
+    const employee = await prisma.user.update({
+      where: { id },
+      data: { focusStatus: parsed.data.focusStatus },
+      select: { id: true, name: true, focusStatus: true },
+    });
+
+    res.json(employee);
+  } catch (err) {
+    if (err.code === "P2025") {
+      return res.status(404).json({ error: "not found" });
+    }
+    next(err);
+  }
+}
+
 // ── PATCH /employees/:id ────────────────────────────────────────────────────
 export async function updateEmployee(req, res, next) {
   try {
