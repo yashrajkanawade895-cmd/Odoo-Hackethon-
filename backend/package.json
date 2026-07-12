@@ -1,0 +1,30 @@
+{
+  "name": "assetflow-backend",
+  "version": "0.1.0",
+  "description": "AssetFlow - Enterprise Asset & Resource Management System (backend)",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "migrate": "prisma migrate dev",
+    "db:constraints": "prisma db execute --file prisma/sql/constraints.sql --schema prisma/schema.prisma",
+    "seed": "node prisma/seed.js",
+    "studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0",
+    "prisma": "^6.5.0"
+  }
+}
