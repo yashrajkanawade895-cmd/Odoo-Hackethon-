@@ -56,6 +56,14 @@ enum TransferStatus {
   rejected
 }
 
+enum MeetingPurpose {
+  client
+  internal
+  interview
+  training
+  town_hall
+}
+
 enum BookingStatus {
   upcoming
   ongoing
@@ -239,6 +247,9 @@ model Booking {
   user         User          @relation(fields: [userId], references: [id])
   startTs      DateTime      @map("start_ts") @db.Timestamptz(6)
   endTs        DateTime      @map("end_ts") @db.Timestamptz(6)
+  purpose      MeetingPurpose @default(internal)
+  bookedFor    String?       @map("booked_for")
+  attendees    Int?
   status       BookingStatus @default(upcoming)
   reminderSent Boolean       @default(false) @map("reminder_sent")
   createdAt    DateTime      @default(now()) @map("created_at")
