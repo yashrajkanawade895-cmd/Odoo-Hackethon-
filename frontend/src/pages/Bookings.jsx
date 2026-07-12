@@ -34,7 +34,11 @@ export default function Bookings() {
       if (err.status === 409 && err.body?.error === 'booking_overlap') {
         setError('That time slot overlaps an existing booking for this resource.')
       } else {
-        setError(err.message || 'Could not create the booking. Please try again.')
+        const msg = err?.body?.details?.fieldErrors?.startTs?.[0]
+          || err?.body?.error
+          || err?.message
+          || 'Could not create the booking. Please try again.'
+        setError(msg)
       }
     },
   })

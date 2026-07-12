@@ -12,13 +12,14 @@ export default function Allocations() {
   const [holderUserId, setHolderUserId] = useState('')
   const [expectedReturn, setExpectedReturn] = useState('')
   const [conflict, setConflict] = useState(null)
+  const [error, setError] = useState('')
 
   const { data: allocations = [], isLoading: allocationsLoading } = useQuery({
     queryKey: ['allocations'],
     queryFn: () => api.allocations.getAllocations(),
   })
   const { data: assets = [] } = useQuery({
-    queryKey: ['assets'],
+    queryKey: ['assets', 'allocatable'],
     queryFn: () => api.assets.getAssets({ bookable: false }),
   })
   const { data: employees = [] } = useQuery({
@@ -48,6 +49,7 @@ export default function Allocations() {
       setHolderUserId('')
       setExpectedReturn('')
       setConflict(null)
+      setError('')
     },
     onError: (err, v) => {
       if (err?.status === 409 && err?.body?.error === 'asset_already_allocated') {
@@ -58,6 +60,15 @@ export default function Allocations() {
           toUserId: Number(v.holderUserId),
           toName: v.toName,
         })
+        setError('')
+      } else {
+        // Show any validation or server error to the user
+        const msg = err?.body?.details?.fieldErrors?.expectedReturnDate?.[0]
+          || err?.body?.error
+          || err?.message
+          || 'Could not allocate. Please try again.'
+        setError(msg)
+        setConflict(null)
       }
     },
   })
@@ -90,6 +101,7 @@ export default function Allocations() {
   const allocate = (e) => {
     e.preventDefault()
     setConflict(null)
+    setError('')
     if (!assetId || !holderUserId) return
     const asset = assets.find((a) => a.id === Number(assetId))
     const employee = employees.find((emp) => emp.id === Number(holderUserId))
@@ -140,8 +152,14 @@ export default function Allocations() {
             ))}
           </select>
           <Input type="date" value={expectedReturn} onChange={(e) => setExpectedReturn(e.target.value)} placeholder="Expected return" />
-          <Button type="submit">Allocate</Button>
+          <Button type="submit" disabled={allocateMutation.isPending}>{allocateMutation.isPending ? 'Allocating…' : 'Allocate'}</Button>
         </div>
+
+        {error && (
+          <div className="mt-3 flex items-center gap-2 text-sm text-status-lost bg-status-lost/5 border border-status-lost/30 rounded-md px-3 py-2">
+            <AlertTriangle size={16} /> {error}
+          </div>
+        )}
 
         {conflict && (
           <div className="mt-3 flex items-center justify-between bg-status-lost/5 border border-status-lost/30 rounded-md px-4 py-3">
