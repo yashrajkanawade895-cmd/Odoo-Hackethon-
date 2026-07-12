@@ -1,4 +1,4 @@
-// AssetFlow database schema — 12 tables, see docs/PIPELINE.md section 4.
+// Bento database schema — 12 tables, see docs/PIPELINE.md section 4.
 // After `npm run migrate`, ALWAYS run `npm run db:constraints` to apply the
 // partial unique index (no double allocation), the booking overlap exclusion
 // constraint, and the asset tag sequence — Prisma cannot express those.

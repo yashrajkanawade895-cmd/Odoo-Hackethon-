@@ -1,4 +1,4 @@
-# AssetFlow — Team Project Documentation
+# Bento — Team Project Documentation
 
 **Enterprise Asset & Resource Management System (ERP)**
 
@@ -80,10 +80,10 @@ Verify: `git --version`, `node --version` (v20.x), `npm --version`
 ### Backend only (Yashraj + Harshit)
 1. **PostgreSQL 16** — postgresql.org/download/windows (EDB installer). Remember the postgres password, keep port 5432. pgAdmin optional (we use the VS Code extension instead).
 2. If `psql` isn't recognized, add `C:\Program Files\PostgreSQL\16\bin` to PATH.
-3. In the VS Code PostgreSQL extension: Add Connection → host `localhost`, port `5432`, user `postgres`, your password → run `CREATE DATABASE assetflow;` → reconnect to `assetflow`.
+3. In the VS Code PostgreSQL extension: Add Connection → host `localhost`, port `5432`, user `postgres`, your password → run `CREATE DATABASE bento;` → reconnect to `bento`.
 4. `backend/.env`:
    ```
-   DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/assetflow"
+   DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/bento"
    JWT_SECRET="pick-a-long-random-string"
    CLOUDINARY_URL="..."   # when Cloudinary account exists
    ```

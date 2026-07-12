@@ -29,8 +29,9 @@ export default function ForgotPassword() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <span className="font-mono-tag text-gradient-brand font-semibold text-2xl tracking-tight">
-            AssetFlow
+            Bento
           </span>
+          <p className="text-white/40 text-xs mt-1.5">Enterprise Asset & Resource Management System. Lovely.</p>
         </div>
 
         <div className="bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">

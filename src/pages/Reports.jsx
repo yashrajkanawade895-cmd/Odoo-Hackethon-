@@ -24,7 +24,7 @@ export default function Reports() {
 
   const handleExport = async () => {
     try {
-      const token = localStorage.getItem('assetflow_token')
+      const token = localStorage.getItem('bento_token')
       const res = await fetch(
         `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/reports/export?type=csv`,
         { headers: { Authorization: `Bearer ${token}` } }

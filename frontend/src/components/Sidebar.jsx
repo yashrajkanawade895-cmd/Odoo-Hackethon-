@@ -9,15 +9,21 @@ import {
   BarChart3,
   Building2,
   Settings,
+  LogOut,
+  Users,
+  Briefcase,
 } from 'lucide-react'
+import { useAuth } from '../context/AuthContext.jsx'
 
 const path = {
-  dashboard: '/dashboard',
+  workspace: '/',
+  directory: '/directory',
+  projects: '/projects',
   assets: '/assets',
   myAssets: '/assets',
   allocations: '/allocations',
   requests: '/allocations',
-  bookings: '/bookings',
+  bookings: '/meetings',
   maintenance: '/maintenance',
   audit: '/audit',
   reports: '/reports',
@@ -27,10 +33,12 @@ const path = {
 
 const navByRole = {
   admin: [
-    { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { key: 'workspace', label: 'My Workspace', icon: LayoutDashboard },
+    { key: 'directory', label: 'Directory', icon: Users },
+    { key: 'projects', label: 'Projects', icon: Briefcase },
     { key: 'assets', label: 'Assets', icon: Package },
     { key: 'allocations', label: 'Allocations', icon: ArrowLeftRight },
-    { key: 'bookings', label: 'Bookings', icon: Calendar },
+    { key: 'bookings', label: 'Meetings & Resources', icon: Calendar },
     { key: 'maintenance', label: 'Maintenance', icon: Wrench },
     { key: 'audit', label: 'Audit', icon: ClipboardCheck },
     { key: 'reports', label: 'Reports', icon: BarChart3 },
@@ -38,28 +46,34 @@ const navByRole = {
     { key: 'settings', label: 'Settings', icon: Settings },
   ],
   dept_head: [
-    { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { key: 'workspace', label: 'My Workspace', icon: LayoutDashboard },
+    { key: 'directory', label: 'Directory', icon: Users },
+    { key: 'projects', label: 'Projects', icon: Briefcase },
     { key: 'assets', label: 'Assets', icon: Package },
     { key: 'allocations', label: 'Allocations', icon: ArrowLeftRight },
-    { key: 'bookings', label: 'Bookings', icon: Calendar },
+    { key: 'bookings', label: 'Meetings & Resources', icon: Calendar },
     { key: 'maintenance', label: 'Maintenance', icon: Wrench },
     { key: 'audit', label: 'Audit', icon: ClipboardCheck },
     { key: 'reports', label: 'Reports', icon: BarChart3 },
     { key: 'settings', label: 'Settings', icon: Settings },
   ],
   asset_manager: [
-    { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { key: 'workspace', label: 'My Workspace', icon: LayoutDashboard },
+    { key: 'directory', label: 'Directory', icon: Users },
+    { key: 'projects', label: 'Projects', icon: Briefcase },
     { key: 'assets', label: 'Assets', icon: Package },
     { key: 'allocations', label: 'Allocations', icon: ArrowLeftRight },
-    { key: 'bookings', label: 'Bookings', icon: Calendar },
+    { key: 'bookings', label: 'Meetings & Resources', icon: Calendar },
     { key: 'maintenance', label: 'Maintenance', icon: Wrench },
     { key: 'audit', label: 'Audit', icon: ClipboardCheck },
     { key: 'settings', label: 'Settings', icon: Settings },
   ],
   employee: [
-    { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { key: 'workspace', label: 'My Workspace', icon: LayoutDashboard },
+    { key: 'directory', label: 'Directory', icon: Users },
+    { key: 'projects', label: 'Projects', icon: Briefcase },
     { key: 'myAssets', label: 'My assets', icon: Package },
-    { key: 'bookings', label: 'Bookings', icon: Calendar },
+    { key: 'bookings', label: 'Meetings & Resources', icon: Calendar },
     { key: 'maintenance', label: 'Maintenance', icon: Wrench },
     { key: 'requests', label: 'Requests', icon: ArrowLeftRight },
     { key: 'settings', label: 'Settings', icon: Settings },
@@ -76,12 +90,13 @@ const roleTitle = {
 export default function Sidebar({ role, userName = 'Admin User' }) {
   const items = navByRole[role]
   const location = useLocation()
+  const { logout } = useAuth()
 
   return (
     <aside className="w-60 bg-ink text-white flex flex-col shrink-0">
       <div className="px-5 py-6 border-b border-white/10">
         <span className="font-mono-tag text-gradient-brand font-semibold text-lg tracking-tight">
-          AssetFlow
+          Bento
         </span>
       </div>
 
@@ -113,10 +128,13 @@ export default function Sidebar({ role, userName = 'Admin User' }) {
         <div className="w-8 h-8 rounded-full bg-status-available/25 flex items-center justify-center text-xs font-medium text-status-available shrink-0">
           {userName.split(' ').map((n) => n[0]).join('')}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-xs font-medium truncate">{userName}</p>
           <p className="text-[11px] text-white/45 truncate">{roleTitle[role]}</p>
         </div>
+        <button onClick={logout} className="p-1.5 text-white/40 hover:text-white hover:bg-white/10 rounded-md transition-colors" title="Log out">
+          <LogOut size={14} />
+        </button>
       </div>
     </aside>
   )

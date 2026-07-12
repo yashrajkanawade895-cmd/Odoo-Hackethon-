@@ -39,14 +39,14 @@ export default function Signup() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <span className="font-mono-tag text-gradient-brand font-semibold text-2xl tracking-tight">
-            AssetFlow
+            Bento
           </span>
           <p className="text-white/40 text-xs mt-1.5">New accounts start as Employee — an admin promotes you later.</p>
         </div>
 
         <div className="bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl">
           <h1 className="text-white text-lg font-semibold mb-1">Create your account</h1>
-          <p className="text-white/40 text-xs mb-5">Takes less than a minute.</p>
+          <p className="text-white/40 text-xs mt-1.5">Enterprise Asset & Resource Management System. Lovely.</p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>

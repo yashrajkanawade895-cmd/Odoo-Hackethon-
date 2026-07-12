@@ -1,4 +1,4 @@
-# AssetFlow API Contract
+# Bento API Contract
 
 **THE LAW.** Ashmit codes against this file; backend implements it. Any endpoint
 change is committed HERE first, then coded. Base URL (dev): `http://localhost:5000`
@@ -30,7 +30,7 @@ Always creates role `employee`. A `role` field in the body is ignored.
 ### POST /auth/login
 ```json
 // request
-{ "email": "admin@assetflow.test", "password": "pass123" }
+{ "email": "admin@bento.test", "password": "pass123" }
 // 200
 { "token": "<jwt>", "user": { "id": 1, "name": "Admin User", "email": "...", "role": "admin" } }
 // 401 { "error": "invalid credentials" }

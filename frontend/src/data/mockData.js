@@ -51,6 +51,6 @@ export const upcomingItems = [
 
 export const quickActions = [
   { key: 'register', label: 'Register asset' },
-  { key: 'book', label: 'Book resource' },
+  { key: 'book', label: 'Book meeting room' },
   { key: 'maintenance', label: 'Raise maintenance request' },
 ]

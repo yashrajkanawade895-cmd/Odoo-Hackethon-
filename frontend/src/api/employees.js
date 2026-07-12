@@ -38,3 +38,13 @@ export function updateEmployee(id, patch) {
     () => client.patch(`/employees/${id}`, patch).then((r) => r.data)
   )
 }
+
+export function updateEmployeeFocus(id, focusStatus) {
+  return call(
+    () => {
+      mock = mock.map((e) => (e.id === id ? { ...e, focusStatus } : e))
+      return mockDelay(mock.find((e) => e.id === id))
+    },
+    () => client.patch(`/employees/${id}/focus`, { focusStatus }).then((r) => r.data)
+  )
+}

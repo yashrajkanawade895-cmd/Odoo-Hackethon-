@@ -1,6 +1,6 @@
-# AssetFlow — Enterprise Asset & Resource Management System
+# Bento — Enterprise Asset & Resource Management System
 
-AssetFlow is an enterprise asset management system built to simplify how organizations manage physical assets and shared resources. It provides a centralized platform to register, allocate, track, and maintain assets throughout their lifecycle while reducing manual record keeping.
+Bento is an enterprise asset management system built to simplify how organizations manage physical assets and shared resources. It provides a centralized platform to register, allocate, track, and maintain assets throughout their lifecycle while reducing manual record keeping.
 
 The system includes asset allocation, resource booking, maintenance workflows, audit management, notifications, and reporting, with role-based access for administrators, asset managers, department heads, and employees.
 
@@ -26,11 +26,11 @@ npm run setup     # creates the DB, migrates, applies constraints, and seeds dem
 npm run dev       # http://localhost:5000/health
 ```
 
-That's it — `npm run setup` builds the whole database from zero (it creates the `assetflow`
+That's it — `npm run setup` builds the whole database from zero (it creates the `bento`
 database automatically, applies the schema + the DB-level rules, and seeds the demo data).
 Safe to re-run any time.
 
-**Seeded logins (password `pass123`):** `admin@assetflow.test` · `manager@assetflow.test` · `head@assetflow.test` · `priya@assetflow.test`
+**Seeded logins (password `pass123`):** `admin@bento.test` · `manager@bento.test` · `head@bento.test` · `priya@bento.test`
 
 > The logins live in **your** database, not in git — everyone must run `npm run setup` on their
 > own machine (or all point `DATABASE_URL` at one shared cloud Postgres and seed once).

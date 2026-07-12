@@ -2,9 +2,9 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 // Token management
 export const tokenStorage = {
-  get: () => localStorage.getItem('assetflow_token'),
-  set: (token) => localStorage.setItem('assetflow_token', token),
-  clear: () => localStorage.removeItem('assetflow_token'),
+  get: () => localStorage.getItem('bento_token'),
+  set: (token) => localStorage.setItem('bento_token', token),
+  clear: () => localStorage.removeItem('bento_token'),
 }
 
 async function request(path, options = {}) {

@@ -15,9 +15,25 @@ import employeesRoutes from "./modules/employees/employees.routes.js";
 import projectsRoutes from "./modules/projects/projects.routes.js";
 import { activityLogger } from "./middleware/activityLog.js";
 
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+
 const app = express();
-app.use(cors());
-app.use(express.json());
+
+app.use(helmet());
+
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // limit each IP to 1000 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(globalLimiter);
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+}));
+app.use(express.json({ limit: "1mb" }));
 app.use(activityLogger);
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
@@ -55,5 +71,5 @@ app.use((err, _req, res, _next) => {
 
 const port = process.env.PORT || 5000;
 app.listen(port, () =>
-  console.log(`AssetFlow API running on http://localhost:${port}`)
+  console.log(`Bento API running on http://localhost:${port}`)
 );

@@ -11,7 +11,7 @@ export const client = axios.create({
 // Attach the JWT from AuthContext's storage on every request. AuthContext is the
 // only place that writes this key.
 client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('assetflow_token')
+  const token = localStorage.getItem('bento_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })

@@ -1,4 +1,4 @@
-# AssetFlow Frontend — Ashmit
+# Bento Frontend — Ashmit
 
 ```bash
 cd frontend
@@ -50,4 +50,4 @@ VITE_USE_MOCKS=true
 
 ## Backend is live for Phase 1
 `cd backend && npm run dev` → http://localhost:5000. Seeded logins (password `pass123`):
-admin@assetflow.test · manager@assetflow.test · head@assetflow.test · priya@assetflow.test
+admin@bento.test · manager@bento.test · head@bento.test · priya@bento.test

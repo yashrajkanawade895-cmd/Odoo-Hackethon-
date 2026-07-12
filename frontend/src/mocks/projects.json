@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "name": "Project Atlas",
+    "description": "Migration to new cloud infrastructure",
+    "status": "active",
+    "departmentId": 1,
+    "meetingLocation": "Room A1",
+    "department": { "id": 1, "name": "IT" },
+    "members": [
+      { "id": 4, "name": "Priya Employee", "focusStatus": "in_meeting", "role": "employee" },
+      { "id": 1, "name": "Admin User", "focusStatus": "available", "role": "admin" }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Website Redesign",
+    "description": "Overhaul the main corporate site",
+    "status": "paused",
+    "departmentId": 3,
+    "meetingLocation": "Virtual",
+    "department": { "id": 3, "name": "Operations" },
+    "members": [
+      { "id": 3, "name": "Dev Head", "focusStatus": "focus_time", "role": "dept_head" }
+    ]
+  }
+]

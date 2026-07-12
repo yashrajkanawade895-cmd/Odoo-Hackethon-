@@ -1,7 +1,7 @@
 {
-  "name": "assetflow-backend",
+  "name": "bento-backend",
   "version": "0.1.0",
-  "description": "AssetFlow - Enterprise Asset & Resource Management System (backend)",
+  "description": "Bento - Enterprise Asset & Resource Management System (backend)",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -23,6 +23,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.2",
     "zod": "^3.24.1"
   },
