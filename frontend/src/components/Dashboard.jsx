@@ -1,5 +1,6 @@
 import * as Icons from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import KpiCard from './KpiCard.jsx'
 import PageHeader from './PageHeader.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
@@ -10,6 +11,13 @@ const quickActionIcon = {
   register: 'Package',
   book: 'Calendar',
   maintenance: 'Wrench',
+}
+
+// Where each quick action takes you.
+const quickActionRoute = {
+  register: '/assets',
+  book: '/bookings',
+  maintenance: '/maintenance',
 }
 
 // GET /dashboard/kpis returns one flat object; map it to per-role card sets so
@@ -51,6 +59,7 @@ function ActivityRow({ item, overdue }) {
 
 export default function Dashboard() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const role = user?.role || 'admin'
   const { data: kpisData, isLoading } = useQuery({ queryKey: ['dashboard-kpis'], queryFn: api.dashboard.kpis })
   const kpis = cardsForRole(role, kpisData)
@@ -79,7 +88,7 @@ export default function Dashboard() {
                 </span>
               )}
             </h2>
-            <button className="text-xs text-accent hover:underline">View all</button>
+            <button onClick={() => navigate('/notifications')} className="text-xs text-accent hover:underline">View all</button>
           </div>
           {overdueCount > 0 && (
             <div className="space-y-2 mb-4">
@@ -103,6 +112,7 @@ export default function Dashboard() {
               return (
                 <button
                   key={action.key}
+                  onClick={() => navigate(quickActionRoute[action.key] || '/dashboard')}
                   className="lift-on-hover flex items-center gap-3 text-left px-3 py-2.5 rounded-md border border-line hover:border-accent group"
                 >
                   <span className="w-8 h-8 rounded-md bg-status-available/10 flex items-center justify-center text-status-available shrink-0">
@@ -122,7 +132,7 @@ export default function Dashboard() {
           {shortcuts.map((s) => {
             const Icon = Icons[s.icon]
             return (
-              <button key={s.key} className="flex flex-col items-center gap-1.5 text-ink/70 hover:text-accent group">
+              <button key={s.key} onClick={() => navigate(`/${s.key}`)} className="flex flex-col items-center gap-1.5 text-ink/70 hover:text-accent group">
                 <span className="w-9 h-9 rounded-md border border-line flex items-center justify-center transition-all duration-150 group-hover:border-accent group-hover:-translate-y-0.5 group-hover:shadow-md">
                   <Icon size={16} />
                 </span>
