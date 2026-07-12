@@ -8,6 +8,9 @@ const bookingSchema = z.object({
   assetId: z.number().int().positive(),
   startTs: z.coerce.date(),
   endTs: z.coerce.date(),
+  purpose: z.enum(["client", "internal", "interview", "training", "town_hall"]).optional(),
+  bookedFor: z.string().optional().nullable(),
+  attendees: z.number().int().positive().optional().nullable(),
 }).refine(data => data.endTs > data.startTs, { message: "endTs must be after startTs" });
 
 const patchSchema = z.object({
@@ -48,7 +51,9 @@ export async function getResourceBookings(req, res, next) {
 
     const bookings = await prisma.booking.findMany({
       where,
-      include: { user: { select: { id: true, name: true } } },
+      include: { 
+        user: { select: { id: true, name: true, contactEmail: true, department: { select: { name: true } } } } 
+      },
       orderBy: { startTs: "asc" }
     });
     res.json(bookings);
@@ -61,7 +66,7 @@ export async function createBooking(req, res, next) {
     const parsed = bookingSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: "invalid input", details: parsed.error.flatten() });
     
-    const { assetId, startTs, endTs } = parsed.data;
+    const { assetId, startTs, endTs, purpose, bookedFor, attendees } = parsed.data;
     
     const asset = await prisma.asset.findUnique({ where: { id: assetId } });
     if (!asset || !asset.isBookable) return res.status(400).json({ error: "asset is not bookable or not found" });
@@ -71,7 +76,10 @@ export async function createBooking(req, res, next) {
         assetId,
         userId: req.user.id,
         startTs,
-        endTs
+        endTs,
+        purpose,
+        bookedFor,
+        attendees
       },
       include: { asset: { select: { tag: true, name: true } } }
     });
@@ -137,6 +145,35 @@ export async function updateBooking(req, res, next) {
     if (err.message && err.message.includes("no_overlapping_bookings")) {
       return res.status(409).json({ error: "booking_overlap", message: "This resource is already booked for the selected time." });
     }
+    next(err);
+  }
+}
+
+// ── POST /bookings/:id/request-reschedule ────────────────────────────────────
+export async function requestReschedule(req, res, next) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) return res.status(400).json({ error: "invalid booking id" });
+    
+    const { reason } = req.body;
+    if (!reason) return res.status(400).json({ error: "reason is required" });
+
+    const booking = await prisma.booking.findUnique({ 
+      where: { id },
+      include: { asset: true, user: true }
+    });
+    
+    if (!booking) return res.status(404).json({ error: "booking not found" });
+
+    // Send notification to the booking owner
+    await notify(
+      booking.userId, 
+      "reschedule_request", 
+      `${req.user.name} requested to reschedule your booking for ${booking.asset.name}. Reason: ${reason}`
+    );
+
+    res.json({ success: true, message: "Reschedule request sent" });
+  } catch (err) {
     next(err);
   }
 }
