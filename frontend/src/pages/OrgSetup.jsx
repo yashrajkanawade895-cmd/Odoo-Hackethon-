@@ -1,15 +1,19 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import PageHeader from '../components/PageHeader.jsx'
 import { Button } from '../components/ui/button.jsx'
 import { Input } from '../components/ui/input.jsx'
-import { seedDepartments, seedCategories, seedEmployees } from '../data/seedData.js'
+import { api } from '../api/index.js'
 
 const tabs = [
   { key: 'departments', label: 'Departments' },
   { key: 'categories', label: 'Asset categories' },
   { key: 'employees', label: 'Employee directory' },
 ]
+
+const selectClass =
+  'flex h-9 w-full rounded-md border border-line bg-surface px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50'
 
 function StatusBadge({ status }) {
   return (
@@ -24,19 +28,36 @@ function StatusBadge({ status }) {
 }
 
 function DepartmentsTab() {
-  const [departments, setDepartments] = useState(seedDepartments)
+  const qc = useQueryClient()
+  const { data: departments = [], isLoading } = useQuery({
+    queryKey: ['departments'],
+    queryFn: () => api.departments.getDepartments(),
+  })
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => api.employees.getEmployees(),
+  })
+
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ name: '', head: '', parent: '' })
+  const [form, setForm] = useState({ name: '', headId: '', parentId: '' })
+
+  const createDepartment = useMutation({
+    mutationFn: (v) => api.departments.createDepartment(v),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['departments'] })
+      setForm({ name: '', headId: '', parentId: '' })
+      setShowForm(false)
+    },
+  })
 
   const addDepartment = (e) => {
     e.preventDefault()
     if (!form.name) return
-    setDepartments((d) => [
-      ...d,
-      { id: `d${d.length + 1}`, name: form.name, head: form.head || '—', parent: form.parent || null, status: 'active' },
-    ])
-    setForm({ name: '', head: '', parent: '' })
-    setShowForm(false)
+    createDepartment.mutate({
+      name: form.name,
+      headId: form.headId ? Number(form.headId) : undefined,
+      parentId: form.parentId ? Number(form.parentId) : undefined,
+    })
   }
 
   return (
@@ -49,10 +70,22 @@ function DepartmentsTab() {
       {showForm && (
         <form onSubmit={addDepartment} className="bg-panel border border-line rounded-lg p-4 mb-4 grid grid-cols-3 gap-3">
           <Input placeholder="Department name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <Input placeholder="Department head" value={form.head} onChange={(e) => setForm({ ...form, head: e.target.value })} />
-          <Input placeholder="Parent department (optional)" value={form.parent} onChange={(e) => setForm({ ...form, parent: e.target.value })} />
+          <select className={selectClass} value={form.headId} onChange={(e) => setForm({ ...form, headId: e.target.value })}>
+            <option value="">Department head (optional)</option>
+            {employees.map((emp) => (
+              <option key={emp.id} value={emp.id}>{emp.name}</option>
+            ))}
+          </select>
+          <select className={selectClass} value={form.parentId} onChange={(e) => setForm({ ...form, parentId: e.target.value })}>
+            <option value="">Parent department (optional)</option>
+            {departments.map((d) => (
+              <option key={d.id} value={d.id}>{d.name}</option>
+            ))}
+          </select>
           <div className="col-span-3">
-            <Button type="submit" size="sm">Save department</Button>
+            <Button type="submit" size="sm" disabled={createDepartment.isPending}>
+              {createDepartment.isPending ? 'Saving…' : 'Save department'}
+            </Button>
           </div>
         </form>
       )}
@@ -63,18 +96,31 @@ function DepartmentsTab() {
               <th className="text-left px-4 py-2 font-medium">Name</th>
               <th className="text-left px-4 py-2 font-medium">Head</th>
               <th className="text-left px-4 py-2 font-medium">Parent</th>
+              <th className="text-left px-4 py-2 font-medium">Members</th>
               <th className="text-left px-4 py-2 font-medium">Status</th>
             </tr>
           </thead>
           <tbody>
-            {departments.map((d) => (
-              <tr key={d.id} className="border-t border-line">
-                <td className="px-4 py-2.5 text-ink">{d.name}</td>
-                <td className="px-4 py-2.5 text-ink/70">{d.head}</td>
-                <td className="px-4 py-2.5 text-ink/70">{d.parent || '—'}</td>
-                <td className="px-4 py-2.5"><StatusBadge status={d.status} /></td>
+            {isLoading && (
+              <tr className="border-t border-line">
+                <td className="px-4 py-2.5 text-ink/50" colSpan={5}>Loading departments…</td>
               </tr>
-            ))}
+            )}
+            {!isLoading && departments.length === 0 && (
+              <tr className="border-t border-line">
+                <td className="px-4 py-2.5 text-ink/50" colSpan={5}>No departments yet.</td>
+              </tr>
+            )}
+            {!isLoading &&
+              departments.map((d) => (
+                <tr key={d.id} className="border-t border-line">
+                  <td className="px-4 py-2.5 text-ink">{d.name}</td>
+                  <td className="px-4 py-2.5 text-ink/70">{d.head?.name || '—'}</td>
+                  <td className="px-4 py-2.5 text-ink/70">{d.parent?.name || '—'}</td>
+                  <td className="px-4 py-2.5 text-ink/70">{d._count?.members ?? 0}</td>
+                  <td className="px-4 py-2.5"><StatusBadge status={d.status} /></td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
@@ -82,17 +128,37 @@ function DepartmentsTab() {
   )
 }
 
+function formatCustomFields(customFields) {
+  if (!customFields || typeof customFields !== 'object') return '—'
+  const entries = Object.entries(customFields)
+  if (entries.length === 0) return '—'
+  return entries.map(([k, v]) => `${k}: ${v}`).join(', ')
+}
+
 function CategoriesTab() {
-  const [categories, setCategories] = useState(seedCategories)
+  const qc = useQueryClient()
+  const { data: categories = [], isLoading } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => api.categories.getCategories(),
+  })
+
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ name: '', customField: '' })
+  const [form, setForm] = useState({ name: '', fieldKey: '', fieldValue: '' })
+
+  const createCategory = useMutation({
+    mutationFn: (v) => api.categories.createCategory(v),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['categories'] })
+      setForm({ name: '', fieldKey: '', fieldValue: '' })
+      setShowForm(false)
+    },
+  })
 
   const addCategory = (e) => {
     e.preventDefault()
     if (!form.name) return
-    setCategories((c) => [...c, { id: `c${c.length + 1}`, name: form.name, customField: form.customField || '—' }])
-    setForm({ name: '', customField: '' })
-    setShowForm(false)
+    const customFields = form.fieldKey && form.fieldValue ? { [form.fieldKey]: form.fieldValue } : undefined
+    createCategory.mutate({ name: form.name, customFields })
   }
 
   return (
@@ -103,11 +169,14 @@ function CategoriesTab() {
         </Button>
       </div>
       {showForm && (
-        <form onSubmit={addCategory} className="bg-panel border border-line rounded-lg p-4 mb-4 grid grid-cols-2 gap-3">
+        <form onSubmit={addCategory} className="bg-panel border border-line rounded-lg p-4 mb-4 grid grid-cols-3 gap-3">
           <Input placeholder="Category name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <Input placeholder="Custom field (optional, e.g. warranty period)" value={form.customField} onChange={(e) => setForm({ ...form, customField: e.target.value })} />
-          <div className="col-span-2">
-            <Button type="submit" size="sm">Save category</Button>
+          <Input placeholder="Custom field name (optional, e.g. warranty_months)" value={form.fieldKey} onChange={(e) => setForm({ ...form, fieldKey: e.target.value })} />
+          <Input placeholder="Custom field value (optional, e.g. 24)" value={form.fieldValue} onChange={(e) => setForm({ ...form, fieldValue: e.target.value })} />
+          <div className="col-span-3">
+            <Button type="submit" size="sm" disabled={createCategory.isPending}>
+              {createCategory.isPending ? 'Saving…' : 'Save category'}
+            </Button>
           </div>
         </form>
       )}
@@ -120,12 +189,23 @@ function CategoriesTab() {
             </tr>
           </thead>
           <tbody>
-            {categories.map((c) => (
-              <tr key={c.id} className="border-t border-line">
-                <td className="px-4 py-2.5 text-ink">{c.name}</td>
-                <td className="px-4 py-2.5 text-ink/70">{c.customField}</td>
+            {isLoading && (
+              <tr className="border-t border-line">
+                <td className="px-4 py-2.5 text-ink/50" colSpan={2}>Loading categories…</td>
               </tr>
-            ))}
+            )}
+            {!isLoading && categories.length === 0 && (
+              <tr className="border-t border-line">
+                <td className="px-4 py-2.5 text-ink/50" colSpan={2}>No categories yet.</td>
+              </tr>
+            )}
+            {!isLoading &&
+              categories.map((c) => (
+                <tr key={c.id} className="border-t border-line">
+                  <td className="px-4 py-2.5 text-ink">{c.name}</td>
+                  <td className="px-4 py-2.5 text-ink/70">{formatCustomFields(c.customFields)}</td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
@@ -136,11 +216,18 @@ function CategoriesTab() {
 const roleLabel = { admin: 'Admin', asset_manager: 'Asset manager', dept_head: 'Department head', employee: 'Employee' }
 
 function EmployeesTab() {
-  const [employees, setEmployees] = useState(seedEmployees)
+  const qc = useQueryClient()
+  const { data: employees = [], isLoading } = useQuery({
+    queryKey: ['employees'],
+    queryFn: () => api.employees.getEmployees(),
+  })
 
-  const promote = (id, role) => {
-    setEmployees((es) => es.map((e) => (e.id === id ? { ...e, role } : e)))
-  }
+  const promoteMutation = useMutation({
+    mutationFn: ({ id, role }) => api.employees.updateEmployeeRole(id, role),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['employees'] }),
+  })
+
+  const promote = (id, role) => promoteMutation.mutate({ id, role })
 
   return (
     <div className="bg-panel border border-line rounded-lg overflow-hidden">
@@ -156,29 +243,48 @@ function EmployeesTab() {
           </tr>
         </thead>
         <tbody>
-          {employees.map((e) => (
-            <tr key={e.id} className="border-t border-line">
-              <td className="px-4 py-2.5 text-ink">{e.name}</td>
-              <td className="px-4 py-2.5 text-ink/70">{e.email}</td>
-              <td className="px-4 py-2.5 text-ink/70">{e.department}</td>
-              <td className="px-4 py-2.5 text-ink/70">{roleLabel[e.role]}</td>
-              <td className="px-4 py-2.5"><StatusBadge status={e.status} /></td>
-              <td className="px-4 py-2.5">
-                {e.role === 'employee' ? (
-                  <div className="flex gap-2">
-                    <button onClick={() => promote(e.id, 'dept_head')} className="text-xs text-accent hover:underline">
-                      Make dept head
-                    </button>
-                    <button onClick={() => promote(e.id, 'asset_manager')} className="text-xs text-accent hover:underline">
-                      Make asset manager
-                    </button>
-                  </div>
-                ) : (
-                  <span className="text-xs text-ink/40">Already promoted</span>
-                )}
-              </td>
+          {isLoading && (
+            <tr className="border-t border-line">
+              <td className="px-4 py-2.5 text-ink/50" colSpan={6}>Loading employees…</td>
             </tr>
-          ))}
+          )}
+          {!isLoading && employees.length === 0 && (
+            <tr className="border-t border-line">
+              <td className="px-4 py-2.5 text-ink/50" colSpan={6}>No employees yet.</td>
+            </tr>
+          )}
+          {!isLoading &&
+            employees.map((e) => (
+              <tr key={e.id} className="border-t border-line">
+                <td className="px-4 py-2.5 text-ink">{e.name}</td>
+                <td className="px-4 py-2.5 text-ink/70">{e.email}</td>
+                <td className="px-4 py-2.5 text-ink/70">{e.department?.name || '—'}</td>
+                <td className="px-4 py-2.5 text-ink/70">{roleLabel[e.role] || e.role}</td>
+                <td className="px-4 py-2.5"><StatusBadge status={e.status} /></td>
+                <td className="px-4 py-2.5">
+                  {e.role === 'employee' ? (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => promote(e.id, 'dept_head')}
+                        disabled={promoteMutation.isPending}
+                        className="text-xs text-accent hover:underline disabled:opacity-50"
+                      >
+                        Make dept head
+                      </button>
+                      <button
+                        onClick={() => promote(e.id, 'asset_manager')}
+                        disabled={promoteMutation.isPending}
+                        className="text-xs text-accent hover:underline disabled:opacity-50"
+                      >
+                        Make asset manager
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-ink/40">Already promoted</span>
+                  )}
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>
