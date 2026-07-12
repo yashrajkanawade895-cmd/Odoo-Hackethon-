@@ -13,6 +13,7 @@ import departmentsRoutes from "./modules/departments/departments.routes.js";
 import categoriesRoutes from "./modules/categories/categories.routes.js";
 import employeesRoutes from "./modules/employees/employees.routes.js";
 import { activityLogger } from "./middleware/activityLog.js";
+import { startScheduler } from "./services/scheduler.js";
 
 const app = express();
 app.use(cors());
@@ -52,6 +53,7 @@ app.use((err, _req, res, _next) => {
 });
 
 const port = process.env.PORT || 5000;
-app.listen(port, () =>
-  console.log(`AssetFlow API running on http://localhost:${port}`)
-);
+app.listen(port, () => {
+  console.log(`AssetFlow API running on http://localhost:${port}`);
+  startScheduler();
+});
