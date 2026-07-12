@@ -8,6 +8,13 @@ const updateRoleSchema = z.object({
 const updateEmployeeSchema = z.object({
   departmentId: z.number().int().positive().optional().nullable(),
   status: z.enum(["active", "inactive"]).optional(),
+  contactEmail: z.string().email().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  projectId: z.number().int().positive().optional().nullable(),
+});
+
+const updateFocusSchema = z.object({
+  focusStatus: z.enum(["available", "focus_time", "in_meeting", "wfh", "away"]),
 });
 
 // ── GET /employees ──────────────────────────────────────────────────────────
@@ -42,8 +49,13 @@ export async function getEmployees(req, res, next) {
         email: true,
         role: true,
         status: true,
+        focusStatus: true,
+        contactEmail: true,
+        phone: true,
         createdAt: true,
         department: { select: { id: true, name: true } },
+        project: { select: { id: true, name: true, meetingLocation: true } },
+        manager: { select: { id: true, name: true } },
       },
       orderBy: { name: "asc" },
     });
@@ -79,6 +91,7 @@ export async function updateEmployeeRole(req, res, next) {
         email: true,
         role: true,
         status: true,
+        focusStatus: true,
         department: { select: { id: true, name: true } },
       },
     });
@@ -112,6 +125,7 @@ export async function updateEmployee(req, res, next) {
         email: true,
         role: true,
         status: true,
+        focusStatus: true,
         department: { select: { id: true, name: true } },
       },
     });
