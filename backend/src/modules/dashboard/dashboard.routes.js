@@ -16,5 +16,9 @@ activityLogsRouter.get("/", requireAuth, requireRole("admin"), ctrl.getActivityL
 
 export const reportsRouter = Router();
 reportsRouter.get("/utilization", requireAuth, ctrl.getUtilizationReport);
+reportsRouter.get("/maintenance-frequency", requireAuth, ctrl.getMaintenanceFrequencyReport);
+reportsRouter.get("/department-allocation", requireAuth, ctrl.getDepartmentAllocationReport);
+reportsRouter.get("/booking-heatmap", requireAuth, ctrl.getBookingHeatmapReport);
+reportsRouter.get("/maintenance-due", requireAuth, ctrl.getMaintenanceDueReport);
 reportsRouter.get("/export", requireAuth, ctrl.exportReport);
 

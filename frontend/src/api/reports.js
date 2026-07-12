@@ -30,6 +30,14 @@ export function getBookingHeatmap() {
   )
 }
 
+// GET /reports/maintenance-due -> [{ id, tag, name, status, reason }]
+export function getMaintenanceDue() {
+  return call(
+    () => mockDelay([]),
+    () => client.get('/reports/maintenance-due').then((r) => r.data)
+  )
+}
+
 // GET /reports/export?report=...&type=csv
 export function exportReport(report, type = 'csv') {
   return call(

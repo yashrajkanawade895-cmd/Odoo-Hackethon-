@@ -162,6 +162,126 @@ export async function getUtilizationReport(req, res, next) {
   } catch(err) { next(err); }
 }
 
+// ── GET /reports/maintenance-frequency ──────────────────────────────────────
+export async function getMaintenanceFrequencyReport(req, res, next) {
+  try {
+    // Pull all maintenance requests with their asset's category, aggregate in JS.
+    const requests = await prisma.maintenanceRequest.findMany({
+      include: { asset: { include: { category: true } } }
+    });
+
+    const counts = {}; // category name -> count
+    for (const r of requests) {
+      const name = r.asset?.category?.name;
+      if (!name) continue;
+      counts[name] = (counts[name] || 0) + 1;
+    }
+
+    const report = Object.entries(counts)
+      .map(([category, count]) => ({ category, count }))
+      .sort((a, b) => b.count - a.count);
+
+    res.json(report);
+  } catch(err) { next(err); }
+}
+
+// ── GET /reports/department-allocation ──────────────────────────────────────
+export async function getDepartmentAllocationReport(req, res, next) {
+  try {
+    // Currently active allocations only (returnedAt = null).
+    const allocations = await prisma.allocation.findMany({
+      where: { returnedAt: null },
+      include: {
+        holderDepartment: true,
+        holderUser: { include: { department: true } }
+      }
+    });
+
+    const counts = {}; // department name -> count
+    for (const a of allocations) {
+      const name = a.holderDepartment?.name || a.holderUser?.department?.name;
+      if (!name) continue; // skip if neither
+      counts[name] = (counts[name] || 0) + 1;
+    }
+
+    const report = Object.entries(counts)
+      .map(([department, count]) => ({ department, count }))
+      .sort((a, b) => b.count - a.count);
+
+    res.json(report);
+  } catch(err) { next(err); }
+}
+
+// ── GET /reports/booking-heatmap ────────────────────────────────────────────
+export async function getBookingHeatmapReport(req, res, next) {
+  try {
+    // Non-cancelled bookings, grouped by day-of-week (0=Sun..6=Sat) and start hour.
+    const bookings = await prisma.booking.findMany({
+      where: { status: { not: "cancelled" } },
+      select: { startTs: true }
+    });
+
+    const counts = {}; // "day-hour" -> count
+    for (const b of bookings) {
+      const d = new Date(b.startTs);
+      const day = d.getDay();
+      const hour = d.getHours();
+      const key = `${day}-${hour}`;
+      counts[key] = (counts[key] || 0) + 1;
+    }
+
+    const report = Object.entries(counts).map(([key, count]) => {
+      const [day, hour] = key.split("-").map(Number);
+      return { day, hour, count };
+    });
+
+    res.json(report);
+  } catch(err) { next(err); }
+}
+
+// ── GET /reports/maintenance-due ────────────────────────────────────────────
+export async function getMaintenanceDueReport(req, res, next) {
+  try {
+    const now = new Date();
+    const threeYearsAgo = new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
+
+    // Assets currently under maintenance, or acquired long enough ago to near retirement.
+    const assets = await prisma.asset.findMany();
+
+    // Assets with an open maintenance request.
+    const openRequests = await prisma.maintenanceRequest.findMany({
+      where: {
+        status: { in: ["pending", "approved", "technician_assigned", "in_progress"] }
+      },
+      select: { assetId: true }
+    });
+    const openAssetIds = new Set(openRequests.map(r => r.assetId));
+
+    const byId = new Map(); // asset id -> report entry (maintenance reason wins over retirement)
+    for (const a of assets) {
+      let reason = null;
+      if (a.status === "under_maintenance") {
+        reason = "Currently under maintenance";
+      } else if (openAssetIds.has(a.id)) {
+        reason = "Open maintenance request";
+      } else if (a.acquisitionDate && new Date(a.acquisitionDate) < threeYearsAgo) {
+        reason = `Nearing retirement (acquired ${new Date(a.acquisitionDate).getFullYear()})`;
+      }
+      if (!reason) continue;
+
+      byId.set(a.id, {
+        id: a.id,
+        tag: a.tag,
+        name: a.name,
+        status: a.status,
+        reason
+      });
+    }
+
+    res.json([...byId.values()]);
+  } catch(err) { next(err); }
+}
+
 // ── GET /reports/export ─────────────────────────────────────────────────────
 export async function exportReport(req, res, next) {
   try {
