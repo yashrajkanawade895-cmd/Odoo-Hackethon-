@@ -1,5 +1,57 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AuthProvider } from './context/AuthContext.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
+import Layout from './components/Layout.jsx'
+import Login from './pages/Login.jsx'
+import Signup from './pages/Signup.jsx'
+import ForgotPassword from './pages/ForgotPassword.jsx'
 import Dashboard from './components/Dashboard.jsx'
+import OrgSetup from './pages/OrgSetup.jsx'
+import Assets from './pages/Assets.jsx'
+import Allocations from './pages/Allocations.jsx'
+import Bookings from './pages/Bookings.jsx'
+import Maintenance from './pages/Maintenance.jsx'
+import Audit from './pages/Audit.jsx'
+import Reports from './pages/Reports.jsx'
+import Notifications from './pages/Notifications.jsx'
+import Settings from './pages/Settings.jsx'
+
+const queryClient = new QueryClient()
 
 export default function App() {
-  return <Dashboard />
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+
+            <Route
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/org-setup" element={<ProtectedRoute allowRoles={['admin']}><OrgSetup /></ProtectedRoute>} />
+              <Route path="/assets" element={<Assets />} />
+              <Route path="/allocations" element={<Allocations />} />
+              <Route path="/bookings" element={<Bookings />} />
+              <Route path="/maintenance" element={<Maintenance />} />
+              <Route path="/audit" element={<Audit />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </QueryClientProvider>
+  )
 }
