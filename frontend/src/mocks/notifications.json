@@ -1,5 +1,8 @@
-[
-  { "id": 701, "type": "Overdue return", "message": "AF-0032 is overdue for return by Neha Patel", "read": false, "at": "2026-07-11T09:12:00" },
-  { "id": 702, "type": "Maintenance approved", "message": "Maintenance request for AF-0322 approved", "read": false, "at": "2026-07-10T17:40:00" },
-  { "id": 703, "type": "Booking confirmed", "message": "Room B2 booked for Jul 14, 9:00-10:00", "read": true, "at": "2026-07-09T11:02:00" }
-]
+{
+  "unreadCount": 2,
+  "notifications": [
+    { "id": 701, "type": "overdue_return", "message": "AF-0032 is overdue for return by Neha Patel", "isRead": false, "createdAt": "2026-07-11T09:12:00" },
+    { "id": 702, "type": "maintenance_approved", "message": "Maintenance request for AF-0322 approved", "isRead": false, "createdAt": "2026-07-10T17:40:00" },
+    { "id": 703, "type": "booking_confirmed", "message": "Room B2 booked for Jul 14, 9:00-10:00", "isRead": true, "createdAt": "2026-07-09T11:02:00" }
+  ]
+}
