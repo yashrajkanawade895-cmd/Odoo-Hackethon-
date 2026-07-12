@@ -1,0 +1,4 @@
+[
+  { "id": 301, "resourceId": 107, "resource": "Room B2", "bookedBy": "Aman Singh", "startTs": "2026-07-14T09:00:00", "endTs": "2026-07-14T10:00:00", "status": "upcoming" },
+  { "id": 302, "resourceId": 105, "resource": "Conference Room A", "bookedBy": "Rahul Verma", "startTs": "2026-07-13T15:00:00", "endTs": "2026-07-13T16:00:00", "status": "upcoming" }
+]

@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "Engineering", "headId": 2, "headName": "Priya Sharma", "parentId": null, "memberCount": 12, "status": "active" },
+  { "id": 2, "name": "Design", "headId": 3, "headName": "Aman Singh", "parentId": null, "memberCount": 6, "status": "active" },
+  { "id": 3, "name": "Frontend", "headId": 5, "headName": "Neha Patel", "parentId": 1, "memberCount": 4, "status": "active" },
+  { "id": 4, "name": "Facilities", "headId": 6, "headName": "Rahul Verma", "parentId": null, "memberCount": 3, "status": "inactive" }
+]

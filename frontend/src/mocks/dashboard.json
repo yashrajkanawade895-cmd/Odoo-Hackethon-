@@ -1,0 +1,9 @@
+{
+  "available": 42,
+  "allocated": 118,
+  "maintenanceToday": 3,
+  "activeBookings": 7,
+  "pendingTransfers": 2,
+  "upcomingReturns": 5,
+  "overdueReturns": 2
+}

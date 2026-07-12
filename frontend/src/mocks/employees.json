@@ -1,0 +1,7 @@
+[
+  { "id": 2, "name": "Priya Sharma", "email": "priya@acme.com", "department": "Engineering", "departmentId": 1, "role": "asset_manager", "status": "active" },
+  { "id": 4, "name": "Raj Kumar", "email": "raj@acme.com", "department": "Engineering", "departmentId": 1, "role": "employee", "status": "active" },
+  { "id": 3, "name": "Aman Singh", "email": "aman@acme.com", "department": "Design", "departmentId": 2, "role": "dept_head", "status": "active" },
+  { "id": 5, "name": "Neha Patel", "email": "neha@acme.com", "department": "Frontend", "departmentId": 3, "role": "employee", "status": "active" },
+  { "id": 6, "name": "Rahul Verma", "email": "rahul@acme.com", "department": "Facilities", "departmentId": 4, "role": "employee", "status": "inactive" }
+]

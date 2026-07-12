@@ -1,12 +1,9 @@
 # AssetFlow Frontend — Ashmit
 
-Scaffold (run inside `frontend/`):
 ```bash
-npm create vite@latest . -- --template react
+cd frontend
 npm install
-npm install react-router-dom @tanstack/react-query react-hook-form zod axios sonner
-npx tailwindcss init -p   # follow shadcn/ui install guide after Tailwind
-# later phases: @fullcalendar/react @fullcalendar/timegrid recharts
+npm run dev        # http://localhost:5173
 ```
 
 ## Rules
@@ -15,21 +12,35 @@ npx tailwindcss init -p   # follow shadcn/ui install guide after Tailwind
 3. Mock the ERRORS too: the 409 "held by Priya" and "booking overlap" UI states matter most for judging.
 4. At each phase boundary, the previous phase's screens must run on the real API.
 
-## API layer pattern
+## API layer (built)
 ```
-src/
-  api/client.js      // axios instance, baseURL = import.meta.env.VITE_API_URL,
-                     // attaches Authorization: Bearer <token> from auth context
-  api/assets.js      // getAssets(), createAsset()...  each checks USE_MOCKS
-  mocks/assets.json  // shapes copied EXACTLY from api-contract.md
+src/api/client.js        // axios instance, baseURL = VITE_API_URL, attaches
+                          // Authorization: Bearer <token> from localStorage
+src/api/auth.js           src/api/dashboard.js
+src/api/departments.js    src/api/categories.js     src/api/employees.js
+src/api/assets.js         src/api/allocations.js    src/api/transfers.js
+src/api/bookings.js       src/api/maintenance.js    src/api/audits.js
+src/api/notifications.js  src/api/logs.js           src/api/reports.js
+src/api/index.js          // barrel: import { api } from '../api'
+src/mocks/*.json          // shapes copied from api-contract.md
 ```
-```js
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
-export async function getAssets(params) {
-  if (USE_MOCKS) return mockAssets;
-  return (await client.get("/assets", { params })).data;
-}
-```
+Every function in every module branches once on `USE_MOCKS` (`src/api/client.js`)
+and either resolves from the matching `src/mocks/*.json` or calls the real
+endpoint through the shared axios client. Mocked 409s (`asset_already_allocated`,
+`booking_overlap`) throw the same `{status, body}` shape a real failed request
+would, so error-handling code never has to know which mode it's in.
+
+**Currently flipped to real endpoints:** `auth` (login/signup/me), `dashboard`
+(kpis) — these are the two things `backend` already serves per `README.md`.
+Everything else still resolves from mocks by default; flip a module by setting
+`VITE_USE_MOCKS=false` and confirming its `src/api/*.js` file matches whatever
+Yashraj/Harshit actually shipped for that phase.
+
+**Still on local component state, not yet wired to `src/api/*`:** Assets,
+Allocations/Transfers, Bookings, Maintenance, Audit, OrgSetup, Notifications,
+Reports. The API modules and mocks exist and are contract-accurate — wiring a
+page is a `useQuery`/`useMutation` swap from `seedData.js` to `api.<module>.*`,
+same pattern as `Dashboard.jsx`. Do this per module as its backend phase lands.
 
 `.env.development`:
 ```
